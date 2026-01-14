@@ -1,1 +1,24 @@
 @import "tailwindcss";
+:root {
+  /* Brand */
+  --primary: #FAF3E1;      /* background */
+  --secondary: #FFFFFF;   /* cards / containers */
+  --tertiary: #1CB0F6;    /* main action button */
+
+  /* Accents */
+  --accent-green: #58CC02;
+  --accent-orange: #FF9600;
+  --accent-purple: #7C5CFF;
+
+  /* Button states */
+  --tertiary-hover: #1494CC;
+  --tertiary-disabled: #9DD7F7;
+
+  /* Text */
+  --text-primary: #1F2937;
+  --text-secondary: #6B7280;
+
+  /* UI */
+  --border-soft: #E5E7EB;
+  --card: #111827;
+}

@@ -2,8 +2,8 @@ from typing import Annotated
 from models.auth.user import Users
 from sqlalchemy.orm import Session
 
-def create_user(db: Session, username: str, hashed_password: str):
-    user=Users(username=username, hashed_password=hashed_password)
+def create_signup_user(db: Session, username: str, hashed_password: str, ranking: str):
+    user=Users(username=username, hashed_password=hashed_password, ranking=ranking)
     db.add(user)
     db.commit()
     db.refresh(user)

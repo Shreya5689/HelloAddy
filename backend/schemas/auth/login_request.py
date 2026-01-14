@@ -4,3 +4,5 @@ class CreateUserRequest(BaseModel):
     username: str
     password: str
 
+class CreateUserSignupRequest(CreateUserRequest):
+    ranking: str

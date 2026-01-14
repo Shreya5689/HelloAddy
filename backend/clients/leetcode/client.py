@@ -24,6 +24,31 @@ HEADERS = {
 }
 
 LEETCODE_QUERY = """
+query favoriteQuestionList(
+  $limit: Int!
+  $skip: Int!
+  $favoriteSlug: String!
+) {
+  favoriteQuestionList(
+    limit: $limit
+    skip: $skip
+    favoriteSlug:$favoriteSlug 
+  ) {
+    questions {
+      title
+      titleSlug
+      difficulty
+      acRate
+      paidOnly
+      topicTags {
+        slug
+      }
+    }
+  }
+}
+
+"""
+LEETCODE_QUERY_ALL_QUESTIONS="""
 query problemsetQuestionList($limit: Int!, $skip: Int!) {
   problemsetQuestionListV2(limit: $limit, skip: $skip) {
     questions {
@@ -41,19 +66,68 @@ query problemsetQuestionList($limit: Int!, $skip: Int!) {
 }
 """
 
-
 @strawberry.type
 class Problem:
     title: str
     title_slug: str
     difficulty: str
     ac_rate: float
+    tags:list[str]
     paid_only: bool
 
 
 
 @strawberry.type
 class Query:
+    
+    @strawberry.field
+    def search_all_problems(self)->List[Problem]:
+        results: List[Problem] = []
+
+        skip=0
+        limit=1000
+
+        response = requests.post(
+          LEETCODE_URL,
+          headers=HEADERS,
+          json={
+              "query": LEETCODE_QUERY_ALL_QUESTIONS,
+              "variables": {
+                  "limit": limit,
+                  "skip": skip
+              }
+            },
+          timeout=15,
+        )
+
+
+        # if response.status_code != 200:
+          # raise RuntimeError(f"LeetCode error: {response.text}")
+
+        payload = response.json()
+        # if "errors" in payload:
+        #   raise RuntimeError(payload["errors"])
+
+        questions = payload["data"]["problemsetQuestionListV2"]["questions"]
+
+        for q in questions:
+          tag_slugs = [tag["slug"] for tag in q["topicTags"]]
+
+          results.append(
+            Problem(
+              title=q["title"],
+              title_slug=q["titleSlug"],
+              difficulty=q["difficulty"],
+              ac_rate=float(q["acRate"] or 0),
+              tags=tag_slugs,
+              paid_only=q["paidOnly"],
+            )
+          )
+        skip += limit
+        return results
+
+          
+
     @strawberry.field
     def search_problems(self, keyword: str) -> List[Problem]:
         topic=keyword.lower()
@@ -62,44 +136,43 @@ class Query:
         skip=0
         limit=1000
 
-        while True:
-          response = requests.post(
-            LEETCODE_URL,
-            headers=HEADERS,
-            json={
-                "query": LEETCODE_QUERY,
-                "variables": {"limit": limit, "skip": skip},
+        response = requests.post(
+          LEETCODE_URL,
+          headers=HEADERS,
+          json={
+              "query": LEETCODE_QUERY,
+              "variables": {
+                  "limit": limit,
+                  "skip": skip,
+                  "favoriteSlug": topic
+              }
             },
-            timeout=15,
+          timeout=15,
+        )
+
+
+        # if response.status_code != 200:
+          # raise RuntimeError(f"LeetCode error: {response.text}")
+
+        payload = response.json()
+        # if "errors" in payload:
+        #   raise RuntimeError(payload["errors"])
+
+        questions = payload["data"]["favoriteQuestionList"]["questions"]
+        for q in questions:
+          tag_slugs = [tag["slug"] for tag in q["topicTags"]]
+
+          results.append(
+            Problem(
+                title=q["title"],
+                title_slug=q["titleSlug"],
+                difficulty=q["difficulty"],
+                ac_rate=float(q["acRate"] or 0),
+                tags=tag_slugs,
+                paid_only=q["paidOnly"],
+               )
           )
-
-          if response.status_code != 200:
-            raise RuntimeError(f"LeetCode error: {response.text}")
-
-          payload = response.json()
-
-          if "errors" in payload:
-            raise RuntimeError(payload["errors"])
-
-          questions = payload["data"]["problemsetQuestionListV2"]["questions"]
-
-          if not questions:
-            break
-        
-          for q in questions:
-            tag_slugs={tag["slug"] for tag in q["topicTags"]}
-  
-            if topic in tag_slugs:
-                results.append(
-                    Problem(
-                        title=q["title"],
-                        title_slug=q["titleSlug"],
-                        difficulty=q["difficulty"],
-                        ac_rate=float(q["acRate"] or 0),
-                        paid_only=q["paidOnly"],
-                    )
-                )
-          skip += limit
+        skip += limit
         return results
 
 
