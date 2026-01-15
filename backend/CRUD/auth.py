@@ -9,6 +9,5 @@ def create_signup_user(db: Session, username: str, hashed_password: str, ranking
     db.refresh(user)
     return user
 
-
 def get_user(db: Session, username:str):
     return db.query(Users).filter(Users.username == username).first()

@@ -48,7 +48,9 @@ async def login(response:Response, db: Annotated[Session, Depends(get_db)], crea
 
         return {
         "message": "Welcome",
-        "access_token": access_token
+        "access_token": access_token,
+        "username": user.username,
+        "ranking": user.ranking
         }
     
 
@@ -88,12 +90,14 @@ async def create_user(response:Response, db: Annotated[Session,Depends(get_db)],
 
         return {
         "message": "User created successfully",
-        "access_token": access_token
+        "access_token": access_token,
+        "username": create_user_request.username,
+        "ranking": create_user_request.ranking
         }
 
 oauth2_scheme = HTTPBearer()
 @router.get("/billu")
-def validate_token(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)):
+def validate_token(db: Annotated[Session,Depends(get_db)], credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)):
     payload = auth.verify_token(credentials.credentials)
     print(payload)
     if not payload:
@@ -101,10 +105,13 @@ def validate_token(credentials: HTTPAuthorizationCredentials = Depends(oauth2_sc
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token"
         )
+    
+    ranking = get_user(db, payload.get("sub")).ranking
 
     return {
         "valid": True,
-        "payload": payload
+        "username": payload.get("sub"),
+        "ranking": ranking
     }
 
 

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuthStore } from '../api_sevices/auth'; 
 
-// --- Simple SVG Icons (GitHub Style) ---
 const PencilIcon = () => (
   <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11.013 1.427a2.75 2.75 0 1 1 3.89 3.89l-1.052 1.052-3.89-3.89L11.013 1.427ZM9.21 3.23l-7.143 7.143a1.25 1.25 0 0 0-.343.626L1.007 14.25a.75.75 0 0 0 .913.913l3.251-.717a1.25 1.25 0 0 0 .626-.343l7.143-7.143-3.89-3.89Z" /></svg>
 );
@@ -14,6 +14,11 @@ const CrossIcon = () => (
 const EditableField = ({ value, onSave, label, type = "text", className = "" }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value);
+
+  // Sync tempValue when the prop value changes (essential for async data)
+  useEffect(() => {
+    setTempValue(value);
+  }, [value]);
 
   const handleSave = () => {
     onSave(tempValue);
@@ -55,9 +60,9 @@ const EditableField = ({ value, onSave, label, type = "text", className = "" }) 
     <div className={`group relative flex items-start justify-between ${className}`}>
       <div className="flex-1 pr-6">
         {label === "name" ? (
-          <h1 className="text-2xl font-bold text-[#1F2328]">{value}</h1>
+          <h1 className="text-2xl font-bold text-[#1F2328]">{value || "Guest User"}</h1>
         ) : (
-          <p className="text-[#1F2328] text-sm leading-relaxed">{value}</p>
+          <p className="text-[#1F2328] text-sm leading-relaxed">{value || `Add ${label}...`}</p>
         )}
       </div>
       <button 
@@ -72,17 +77,23 @@ const EditableField = ({ value, onSave, label, type = "text", className = "" }) 
 };
 
 const UserProfile = () => {
-  const [userData, setUserData] = useState({
-    name: "Alex Johnson",
-    ranking: "Platinum Tier • Top 500",
-    email: "alex.dev@github.io",
-    bio: "Building the future of the web, one commit at a time.",
-    about: "Full-stack engineer with a focus on high-performance React applications. I enjoy solving complex architectural problems and mentoring junior developers. Currently exploring the intersections of AI and UI design."
-  });
+  // 1. Hook into your Zustand store
+  const { user, fetchUserProfile, loading } = useAuthStore();
+
+  // 2. Fetch the profile data (auth/billu) when the component loads
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
 
   const updateField = (field, newValue) => {
-    setUserData(prev => ({ ...prev, [field]: newValue }));
+    // Note: You would typically add an 'updateUser' action in auth.js 
+    // to send a PATCH request to your database here.
+    console.log(`Updating ${field} to ${newValue}`);
   };
+
+  // Show a loading state while fetching from database
+  if (loading) return <div className="p-20 text-center">Loading profile...</div>;
+  if (!user) return <div className="p-20 text-center">No user data found. Please login.</div>;
 
   return (
     <div className="max-w-5xl mx-auto p-4 md:p-10 font-sans text-[#1F2328]">
@@ -91,7 +102,8 @@ const UserProfile = () => {
         <div className="w-full md:w-1/4">
           <div className="mb-4">
             <img 
-            //   src={`https://api.dicebear.com/7.x/initials/svg?seed=${userData.name}&backgroundColor=0052cc`} 
+              // Uses the username from DB to generate a unique avatar
+              src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.name || user.username}&backgroundColor=0052cc`} 
               alt="Avatar" 
               className="w-full aspect-square rounded-full border border-gray-200 shadow-sm"
             />
@@ -99,14 +111,14 @@ const UserProfile = () => {
 
           <EditableField 
             label="name" 
-            // value={userData} 
+            value={user.name || user.username} 
             onSave={(val) => updateField('name', val)} 
             className="mb-1"
           />
 
           <EditableField 
             label="bio" 
-            // value={userData.bio} 
+            value={user.bio} 
             type="textarea"
             onSave={(val) => updateField('bio', val)} 
             className="mb-6"
@@ -115,12 +127,19 @@ const UserProfile = () => {
           <div className="pt-4 border-t border-gray-200 space-y-4">
             <div className="space-y-1">
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ranking</span>
-              <EditableField  onSave={(val) => updateField('ranking', val)} />
+              {/* Mapping ranking from your database */}
+              <EditableField 
+                value={user.ranking} 
+                onSave={(val) => updateField('ranking', val)} 
+              />
             </div>
             
             <div className="space-y-1">
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</span>
-              <EditableField  onSave={(val) => updateField('email', val)} />
+              <EditableField 
+                value={user.email} 
+                onSave={(val) => updateField('email', val)} 
+              />
             </div>
           </div>
         </div>
@@ -138,7 +157,7 @@ const UserProfile = () => {
             </div>
             <EditableField 
               label="about" 
-            //   value={userData.about} 
+              value={user.about} 
               type="textarea"
               onSave={(val) => updateField('about', val)} 
             />
