@@ -1,5 +1,6 @@
 from google import genai
 import os
+import json
 from dotenv import load_dotenv
 from typing import List
 from pydantic import BaseModel
@@ -37,7 +38,16 @@ def get_tags(topic:str):
             "response_json_schema": Tags.model_json_schema(),
         },
     )
-    return response.text
 
-tags= get_tags("graphs")
-print(tags)
+    try:
+        # print(response.text)
+        result = json.loads(response.text)
+    except Exception as e:
+        print("Error decoding JSON from model response")
+        result = {"leetcode_tags": [], "codeforces_tags": []}
+
+    return result
+
+
+# tags= get_tags("graphs")
+# print(tags)

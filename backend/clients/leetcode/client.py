@@ -81,7 +81,7 @@ class Problem:
 class Query:
     
     @strawberry.field
-    def search_all_problems(self)->List[Problem]:
+    def search_all_problems(self, tags: List[str]=None)->List[Problem]:
         results: List[Problem] = []
 
         skip=0
@@ -110,19 +110,38 @@ class Query:
 
         questions = payload["data"]["problemsetQuestionListV2"]["questions"]
 
-        for q in questions:
-          tag_slugs = [tag["slug"] for tag in q["topicTags"]]
+        if tags==None:
+          for q in questions:
+            tag_slugs = [tag["slug"] for tag in q["topicTags"]]
 
-          results.append(
-            Problem(
-              title=q["title"],
-              title_slug=q["titleSlug"],
-              difficulty=q["difficulty"],
-              ac_rate=float(q["acRate"] or 0),
-              tags=tag_slugs,
-              paid_only=q["paidOnly"],
+            results.append(
+              Problem(
+                title=q["title"],
+                title_slug=q["titleSlug"],
+                difficulty=q["difficulty"],
+                ac_rate=float(q["acRate"] or 0),
+                tags=tag_slugs,
+                paid_only=q["paidOnly"],
+              )
             )
-          )
+        
+        else:
+            # filter based on tags
+            # print(tags)
+          for q in questions:
+            tag_slugs = [tag["slug"] for tag in q["topicTags"]]
+            for tag in tags:
+              if tag in tag_slugs:
+                results.append(
+                  Problem(
+                      title=q["title"],
+                    title_slug=q["titleSlug"],
+                    difficulty=q["difficulty"],
+                    ac_rate=float(q["acRate"] or 0),
+                    tags=tag_slugs,
+                    paid_only=q["paidOnly"],
+                  )
+                )
         skip += limit
         return results
 

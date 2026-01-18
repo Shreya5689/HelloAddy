@@ -6,7 +6,7 @@ result = Query()
 # print(ans)
 
 def get_all_tags_from_codeforces():
-    codeforces_problem = search_codeforces("")
+    codeforces_problem = search_codeforces()
     codeforces_tags=set()
 
     for p in codeforces_problem:

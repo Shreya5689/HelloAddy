@@ -20,6 +20,7 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 w-full bg-[var(--secondary)]/80 backdrop-blur-md border-b border-[var(--border-soft)] shadow-sm px-6 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
+        
         {/* Logo */}
         <Link to="/" className="text-xl font-bold bg-gradient-to-r from-[var(--tertiary)] to-[var(--accent-purple)] bg-clip-text text-transparent">
           HelloAddy
