@@ -14,6 +14,7 @@ from jose import jwt, JWTError
 from CRUD.auth import get_user, create_signup_user
 from utils import auth
 from fastapi import Response,Request
+from models.auth.user import Users
 
 
 router = APIRouter()
@@ -64,6 +65,7 @@ async def create_user(response:Response, db: Annotated[Session,Depends(get_db)],
     else:
         create_signup_user(
             db=db,
+            email= create_user_request.email,
             username=create_user_request.username,
             hashed_password=hashed_password,
             ranking=create_user_request.ranking
@@ -107,11 +109,12 @@ def validate_token(db: Annotated[Session,Depends(get_db)], credentials: HTTPAuth
         )
     
     ranking = get_user(db, payload.get("sub")).ranking
-
+    profile = user.profile
     return {
         "valid": True,
         "username": payload.get("sub"),
-        "ranking": ranking
+        "ranking": ranking,
+        "email":user.email
     }
 
 

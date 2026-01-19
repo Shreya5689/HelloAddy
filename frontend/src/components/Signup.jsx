@@ -6,6 +6,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -16,7 +17,7 @@ export default function Signup() {
       return;
     }
     // Navigate to ranking, passing state
-    navigate("/ranking", { state: { username, password } });
+    navigate("/ranking", { state: { username, password, email } });
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FAF3E1]">
@@ -32,6 +33,15 @@ export default function Signup() {
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border"
+          />
+          
+          <input
+            placeholder="Email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-2 rounded-lg border"
           />
 

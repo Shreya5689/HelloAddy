@@ -57,6 +57,7 @@ export default function LevelSelect() {
       // 3. Finalize Signup: Send username, password AND ranking
       const res = await authApi.signup({
         username,
+        email,
         password,
         ranking: level
       });

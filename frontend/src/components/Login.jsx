@@ -53,6 +53,14 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-2 rounded-lg border"
           />
+          
+          <input
+            placeholder="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border"
+          />
 
           <button className="w-full bg-[var(--card)] text-white py-2 rounded-lg">
             Log In
