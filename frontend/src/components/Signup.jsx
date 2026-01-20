@@ -10,14 +10,17 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // console.log("Mai aaya")
     const handleSignup = async (e) => {
     e.preventDefault();
-    if (!username || !password) {
+    if (!username || !password || !email) {
       setError("Please fill in all fields");
       return;
     }
+    // console.log("Maai aagya")
     // Navigate to ranking, passing state
-    navigate("/ranking", { state: { username, password, email } });
+    console.log("mai signup se chla")
+    navigate("/ranking", { state: { username, email, password } });
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FAF3E1]">
@@ -35,7 +38,7 @@ export default function Signup() {
             onChange={(e) => setUsername(e.target.value)}
             className="w-full px-4 py-2 rounded-lg border"
           />
-          
+
           <input
             placeholder="Email"
             type="email"

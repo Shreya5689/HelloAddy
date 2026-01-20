@@ -6,6 +6,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail]= useState("");
   const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
@@ -14,7 +15,8 @@ export default function Login() {
     try {
       const body = {
         "username": username,
-        "password" : password
+        "password" : password,
+        "email": email
       }
 
       const res = await authApi.login(body);
@@ -44,15 +46,6 @@ export default function Login() {
             onChange={(e) => setUsername(e.target.value)}
             className="w-full px-4 py-2 rounded-lg border"
           />
-
-          <input
-            placeholder="Password"
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border"
-          />
           
           <input
             placeholder="Email"
@@ -62,6 +55,17 @@ export default function Login() {
             className="w-full px-4 py-2 rounded-lg border"
           />
 
+
+          <input
+            placeholder="Password"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border"
+          />
+
+          
           <button className="w-full bg-[var(--card)] text-white py-2 rounded-lg">
             Log In
           </button>

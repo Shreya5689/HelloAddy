@@ -7,11 +7,11 @@ from starlette import status
 from database import get_db
 from schemas.auth.login_request import CreateUserRequest, CreateUserSignupRequest
 from schemas.auth.Token import Token
-from models.auth.user import Users
+from models.auth.user import Users, UserProfile
 import bcrypt
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm,HTTPAuthorizationCredentials,HTTPBearer
 from jose import jwt, JWTError
-from CRUD.auth import get_user, create_signup_user
+from CRUD.auth import get_user, create_signup_user,get_profile
 from utils import auth
 from fastapi import Response,Request
 from models.auth.user import Users
@@ -46,20 +46,19 @@ async def login(response:Response, db: Annotated[Session, Depends(get_db)], crea
         max_age=7 * 24 * 60 * 60,
         path="/refresh"        
         )
+        profile = get_profile(db, user.username)
 
         return {
         "message": "Welcome",
-        "access_token": access_token,
-        "username": user.username,
-        "ranking": user.ranking
+        "access_token": access_token
         }
     
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user(response:Response, db: Annotated[Session,Depends(get_db)], create_user_request:CreateUserSignupRequest):
+    print(create_user_request)
     hashed_password = auth.hash_password(create_user_request.password)
     user = get_user(db, create_user_request.username)
-    
     if user:
         return {"message":"User already exists"}
     else:
@@ -92,9 +91,7 @@ async def create_user(response:Response, db: Annotated[Session,Depends(get_db)],
 
         return {
         "message": "User created successfully",
-        "access_token": access_token,
-        "username": create_user_request.username,
-        "ranking": create_user_request.ranking
+        "access_token": access_token
         }
 
 oauth2_scheme = HTTPBearer()
@@ -108,19 +105,23 @@ def validate_token(db: Annotated[Session,Depends(get_db)], credentials: HTTPAuth
             detail="Invalid or expired token"
         )
     
-    ranking = get_user(db, payload.get("sub")).ranking
-    profile = user.profile
+    user = get_user(db, payload.get("sub"))
+    profile = get_profile(db, payload.get("sub"))
+    bio = profile.bio
+    ranking = profile.ranking
     return {
         "valid": True,
         "username": payload.get("sub"),
         "ranking": ranking,
-        "email":user.email
+        "email":user.email,
+        "bio":bio
     }
 
 
 @router.post("/refresh")
 def use_refresh_token(request: Request, db: Annotated[Session,Depends(get_db)]):
     refresh_token=request.cookies.get("refresh_token")
+    print(refresh_token)
     payload= auth.verify_token(refresh_token)
     if not payload or payload.get("type") != "refresh":
         raise HTTPException(
@@ -129,6 +130,7 @@ def use_refresh_token(request: Request, db: Annotated[Session,Depends(get_db)]):
         )
     username = payload.get("sub")
     user = get_user(db, username)
+    print(user)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

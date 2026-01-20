@@ -17,11 +17,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <Routes>
     <Route path="/login" element={<Login />} />
     <Route path="/signup" element={<Signup />} />
+    <Route path="ranking" element={<Ranking />} />
 
     <Route path="/" element={<App />}>
       <Route index element={<Navigate to="problems" replace />} />
       <Route path="problems" element={<Problems />} />
-      <Route path="ranking" element={<Ranking />} />
       <Route path="todo" element={<TodoWishlist/>} />
       <Route path="home" element={<Home/>}/>
       <Route path="workspace" element={<Workspace/>}/>

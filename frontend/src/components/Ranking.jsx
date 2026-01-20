@@ -2,22 +2,26 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import authApi from "../api_sevices/auth";
 
+// console.log("mai aaya")
 export default function LevelSelect() {
   const [level, setLevel] = useState(null);
   const navigate = useNavigate();
   
   // 1. Get credentials passed from Signup page
   const location = useLocation();
-  const { username, password } = location.state || {};
+  const { username, email, password } = location.state || {};
 
   // 2. Protect the route: Redirect to signup if no credentials found
   useEffect(() => {
-    if (!username || !password) {
+    // console.log("Yaha pe aaya")
+    // console.log(username, password, email)
+    if (!username || !password ||!email) {
       // Optional: alert check can be removed if you want silent redirect
       // alert("Please enter details first");
+      console.log("ranking se chla wps")
       navigate("/signup");
     }
-  }, [username, password, navigate]);
+  }, [username, email, password, navigate]);
 
   const levels = [
     {
