@@ -25,6 +25,7 @@ httptools==0.7.1
 httpx==0.28.1
 idna==3.11
 lia-web==0.2.3
+loguru==0.7.3
 packaging==25.0
 passlib==1.7.4
 psycopg2-binary==2.9.11
@@ -52,3 +53,4 @@ urllib3==2.6.2
 uvicorn==0.38.0
 watchfiles==1.1.1
 websockets==15.0.1
+win32_setctime==1.2.0

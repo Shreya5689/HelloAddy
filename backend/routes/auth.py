@@ -11,10 +11,16 @@ from models.auth.user import Users, UserProfile
 import bcrypt
 from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm,HTTPAuthorizationCredentials,HTTPBearer
 from jose import jwt, JWTError
-from CRUD.auth import get_user, create_signup_user,get_profile
-from utils import auth
+from CRUD.auth import get_user, create_signup_user,get_profile, get_user_by_email, save_user_otp,get_user_otp, update_user_password, delete_user_otp
+from utils import auth,email_very
 from fastapi import Response,Request
 from models.auth.user import Users
+from utils.email_very import send_reset_password_email
+from schemas.auth.otp_request import OtpRequest, ResetPasswordRequest
+from utils.auth import generate_otp
+
+
+
 
 
 router = APIRouter()
@@ -147,6 +153,46 @@ def use_refresh_token(request: Request, db: Annotated[Session,Depends(get_db)]):
         "access_token": access_token,
         "message": "refresh successful"
     }
+
+
+
+@router.post("/forgot-password")
+async def forgot_password(otp_req: OtpRequest, db: Annotated[Session, Depends(get_db)]):
+    user = get_user_by_email(db, otp_req.email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User with this email not found")
+    otp = generate_otp()
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
+    save_user_otp(db, user.username, otp, expires_at)
+    
+    success = send_reset_password_email(user.email, otp)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send email")
+    return {"message": "OTP sent to your email"}
+
+
+@router.post("/reset-password")
+async def reset_password(req: ResetPasswordRequest, db: Annotated[Session, Depends(get_db)]):
+    # 1. Verify user exists
+    user = get_user_by_email(db, req.email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    # 2. Retrieve the stored OTP
+    db_otp = get_user_otp(db, user.username)
+    if not db_otp:
+        raise HTTPException(status_code=400, detail="No OTP found for this user")
+    # 3. Check OTP validity and expiration
+    if db_otp.otp != req.otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    
+    if datetime.utcnow() > db_otp.expires_at:
+        raise HTTPException(status_code=400, detail="OTP has expired")
+    # 4. Hash new password and update user record
+    hashed_password = auth.hash_password(req.password)
+    update_user_password(db, user.username, hashed_password)
+    # 5. Delete OTP record after successful use
+    delete_user_otp(db, user.username)
+    return {"message": "Password reset successfully"}
 
 
 

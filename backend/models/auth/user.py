@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from database import Base
+from datetime import datetime
 
 class Users(Base):
     __tablename__ = "users"
@@ -25,3 +26,12 @@ class UserProfile(Base):
 
     # Optional: setup relationship logic
     # user = relationship("Users", back_populates="profile")
+
+
+class UserOTP(Base):
+    __tablename__ = "user_otp"
+    username = Column(String, ForeignKey("users.username"), primary_key=True)
+    otp = Column(String)
+    expires_at = Column(DateTime)   
+    created_at = Column(DateTime, default=datetime.utcnow)
+

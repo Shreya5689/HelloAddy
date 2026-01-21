@@ -39,6 +39,16 @@ const authApi = {
   GET /auth/me
   */
   me: () => api.get("/auth/billu"),
+
+  /*
+  POST /auth/forgot-password
+  */
+  forgotPassword: (body) => api.post("/auth/forgot-password", body),
+
+  /*
+  POST /auth/reset-password
+  */
+  resetPassword: (body) => api.post("/auth/reset-password", body),
 };
 
 export const useAuthStore = create((set) => ({

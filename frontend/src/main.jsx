@@ -11,13 +11,16 @@ import Ranking from "./components/Ranking.jsx";
 import TodoWishlist from "./components/Todo_wishlist.jsx";
 import Workspace from "./components/Workspace.jsx";
 import User_profile from "./components/User_profile.jsx";
+import ForgotPassword from "./components/Forgot_password.jsx";
+
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
     <Route path="/login" element={<Login />} />
     <Route path="/signup" element={<Signup />} />
-    <Route path="ranking" element={<Ranking />} />
+    <Route path="/ranking" element={<Ranking />} />
+    <Route path="/forgot-password" element={<ForgotPassword/>}/>
 
     <Route path="/" element={<App />}>
       <Route index element={<Navigate to="problems" replace />} />

@@ -5,6 +5,8 @@ from jose import JWTError, jwt
 from CRUD.auth import get_user
 import bcrypt
 from database import get_db
+import secrets
+import string
 
 
 SECRETKEY="Billu@123"
@@ -53,3 +55,6 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(oauth2_
             detail="Invalid or expired access token"
         )
     return payload
+
+def generate_otp(length: int = 6):
+    return "".join(secrets.choice(string.digits) for _ in range(length))
