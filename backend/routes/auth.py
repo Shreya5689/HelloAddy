@@ -195,4 +195,16 @@ async def reset_password(req: ResetPasswordRequest, db: Annotated[Session, Depen
     return {"message": "Password reset successfully"}
 
 
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(
+        key="refresh_token",
+        path="/",
+        httponly=True
+        # secure=True,      # keep same flags you used when setting it
+        # samesite="lax"    # must match original cookie
+    )
+    return {"message": "Logged out successfully"}
+
+
 

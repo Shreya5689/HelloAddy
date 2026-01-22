@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import authApi from '../api_sevices/auth';
 
 const Navbar = () => {
   const location = useLocation();
@@ -13,9 +14,23 @@ const Navbar = () => {
     }`;
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+  try {
+    
+    authApi.logout();
+
+    // remove access token (if stored anywhere)
+    localStorage.removeItem("access_token");
+
+    // optional: notify rest of app
     window.dispatchEvent(new Event("auth:logout"));
-  };
+
+    // redirect
+    window.location.href = "/login";
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-[var(--secondary)]/80 backdrop-blur-md border-b border-[var(--border-soft)] shadow-sm px-6 py-3">
