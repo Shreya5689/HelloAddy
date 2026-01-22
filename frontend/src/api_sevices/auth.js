@@ -49,6 +49,7 @@ const authApi = {
   POST /auth/reset-password
   */
   resetPassword: (body) => api.post("/auth/reset-password", body),
+
 };
 
 export const useAuthStore = create((set) => ({
