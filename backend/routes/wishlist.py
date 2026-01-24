@@ -5,7 +5,7 @@ from models.wishlist import UserItem
 from database import get_db
 from utils import auth
 from CRUD.auth import get_user
-from schemas.wishlist.wishlist import Add_item_Request
+from schemas.wishlist.wishlist import Add_item_Request, UpdateItemRequest
 from typing import Annotated
 
 
@@ -35,34 +35,74 @@ def get_items(db: Annotated[Session, Depends(get_db)],
     # This filters the UserItem table by the username found in the user's token
     items = db.query(UserItem).filter(UserItem.username == user["sub"]).all()
     return items
-# @router.patch("/items/{item_id}")
-# def toggle_item(
-#     item_id: int,
-#     user=Depends(get_user),
-#     db: Session = Depends(get_db)
-# ):
-#     item = db.query(UserItem).filter(
-#         UserItem.id == item_id,
-#         UserItem.user_id == user.id
-#     ).first()
 
-#     item.done = not item.done
-#     db.commit()
-#     return item
+@router.patch("/item/{items_id}")
+def toggle_item(
+    items_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user: dict = Depends(auth.get_current_user)
+):
+    # Find the item that matches BOTH the ID and the current User's username
+    item = db.query(UserItem).filter(
+        UserItem.id == items_id,
+        UserItem.username == user["sub"]
+    ).first()
 
-# @router.put("/items/{item_id}")
-# def edit_item(
-#     item_id: int,
-#     data: dict,
-#     user=Depends(get_user),
-#     db: Session = Depends(get_db)
-# ):
-#     item = db.query(UserItem).filter(
-#         UserItem.id == item_id,
-#         UserItem.user_id == user.id
-#     ).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
 
-#     item.value = data["value"]
-#     db.commit()
-#     return item
+    # Flip the status (True -> False or False -> True)
+    item.done = not item.done
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+
+
+@router.delete("/items/{item_id}")
+def delete_item(
+    item_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    user: dict = Depends(auth.get_current_user)
+):
+    # Find item owned by the logged-in user
+    item = db.query(UserItem).filter(
+        UserItem.id == item_id,
+        UserItem.username == user["sub"]
+    ).first()
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    db.delete(item)
+    db.commit()
+
+    return {"message": "Item deleted successfully"}
+
+@router.put("/items/{items_id}")
+def update_item_value(
+    items_id: int,
+    data: UpdateItemRequest,
+    db: Annotated[Session, Depends(get_db)],
+    user: dict = Depends(auth.get_current_user)
+):
+    # Find the item belonging to the current user
+    item = db.query(UserItem).filter(
+        UserItem.id == items_id,
+        UserItem.username == user["sub"]
+    ).first()
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    if data.value is None:
+        raise HTTPException(status_code=400, detail="Value is required")
+
+    # Update the value
+    item.value = data.value
+    db.commit()
+    db.refresh(item)
+
+    return item
 

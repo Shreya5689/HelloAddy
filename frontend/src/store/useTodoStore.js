@@ -39,6 +39,7 @@ const useTodoStore = create((set, get) => ({
     try {
       const list = listType === "todo" ? get().todos : get().wishlist;
       const item = list.find((i) => i.id === id);
+      if (!item) return; // 🛡️ SAFETY
       const res = await wishlistApi.updateItem(id, { done: !item.done });
       const updatedItem = res.data;
 
@@ -63,6 +64,19 @@ const useTodoStore = create((set, get) => ({
       console.error("Error deleting item:", err);
     }
   },
+
+  updateItemValue: async (itemId, newValue) => {
+    try {
+      const res = await wishlistApi.updateItem(itemId, { value: newValue });
+      const updatedItem = res.data;
+
+      const updateList = (prev) => prev.map((i) => (i.id === itemId ? updatedItem : i));
+      set((state) => ({ wishlist: updateList(state.wishlist) }));
+    } catch (err) {
+      console.error("Error updating item:", err);
+    }
+  },
+
 }));
 
 export default useTodoStore;

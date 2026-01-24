@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
 import useTodoStore from "../store/useTodoStore";
+import ListItem from "./List_Item";
 
 export default function TodoWishlist() {
-  const { todos, wishlist, fetchItems, addItem, toggleDone, removeItem } = useTodoStore();
+  const { todos, wishlist, fetchItems, addItem, toggleDone, removeItem, updateItemValue } = useTodoStore();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [mode, setMode] = useState(""); // 'todo' or 'wishlist'
   const [inputType, setInputType] = useState(""); // 'link' or 'text'
+
+  // New states for editing wishlist items
+  const [editingItem, setEditingItem] = useState(null);
+  const [editValue, setEditValue] = useState("");
 
   // FETCH ITEMS ON VISIT
   useEffect(() => {
@@ -27,6 +32,8 @@ export default function TodoWishlist() {
     setModalOpen(false);
   };
 
+
+
   const Card = ({ title, subtitle, items, color, listType }) => (
     <div className="bg-[var(--secondary)] rounded-3xl p-8 shadow-2xl flex-1 min-h-[520px]">
       <div className="flex justify-between items-center mb-4">
@@ -37,32 +44,28 @@ export default function TodoWishlist() {
         </div>
       </div>
       <p className="text-sm text-[var(--text-secondary)] mb-4">{subtitle}</p>
-      
+
       <ul className="space-y-4">
         {items.length === 0 && <li className="text-sm text-gray-400 italic text-center py-10">Nothing added yet… ✨</li>}
         {items.map((item) => (
-          <li key={item.id} className={`flex items-center gap-3 p-4 rounded-xl transition ${item.done ? "bg-green-100/50 text-gray-400 line-through" : "bg-[var(--primary)]"}`}>
-            <button 
-              onClick={() => toggleDone(item.id, listType)} 
-              className={`w-6 h-6 rounded-full flex items-center justify-center border ${item.done ? "bg-green-500 text-white border-green-500" : "border-gray-400 opacity-50"}`}
-            >
-              {item.done && "✔"}
-            </button>
-            <div className="flex-1 break-all">
-              {item.value.startsWith("http") ? (
-                <a href={item.value} target="_blank" rel="noreferrer" className={item.done ? "text-gray-400" : "text-blue-500 hover:underline"}>{item.value}</a>
-              ) : (
-                <span>{item.value}</span>
-              )}
-            </div>
-            {item.done && (
-              <button onClick={() => removeItem(item.id, listType)} className="text-red-400 hover:text-red-600 transition">🗑</button>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+        <ListItem
+          key={item.id}
+          item={item}
+          listType={listType}
+          toggleDone={toggleDone}
+          removeItem={removeItem}
+          onEdit={(clickedItem) => {
+            // Edit trigger logic moved here
+            if (!clickedItem.done) {
+              setEditingItem(clickedItem);
+              setEditValue(clickedItem.value);
+            }
+          }}
+        />
+      ))}
+    </ul>
+  </div>
+);
 
   return (
     <div className="min-h-screen bg-[var(--primary)] p-6 md:p-10 flex flex-col items-center">
@@ -71,6 +74,7 @@ export default function TodoWishlist() {
         <Card title="💫 Wishlist" subtitle="Goals and interesting links." items={wishlist} listType="wishlist" color="from-purple-500 to-indigo-600" />
       </div>
 
+      {/* Add modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-2xl w-[90%] max-w-md shadow-2xl">
@@ -83,6 +87,41 @@ export default function TodoWishlist() {
             <div className="flex justify-end gap-3">
               <button onClick={() => setModalOpen(false)} className="px-5 py-2 rounded-xl bg-gray-100 font-medium">Cancel</button>
               <button onClick={handleConfirmAdd} className="px-5 py-2 rounded-xl bg-black text-white font-medium">Add to List</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit wishlist item modal */}
+      {editingItem && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl w-[90%] max-w-md shadow-2xl">
+            <h3 className="text-xl font-bold mb-4">Update Item ✏️</h3>
+
+            <input
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="w-full border rounded-xl p-4 mb-4 focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setEditingItem(null)}
+                className="px-5 py-2 rounded-xl bg-gray-100 font-medium"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+                  await updateItemValue(editingItem.id, editValue);
+                  setEditingItem(null);
+                }}
+                className="px-5 py-2 rounded-xl bg-black text-white font-medium"
+              >
+                Update
+              </button>
             </div>
           </div>
         </div>

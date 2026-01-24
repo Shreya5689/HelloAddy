@@ -14,12 +14,19 @@ const wishlistApi = {
 //   /*
 //   PATCH /items/:id
 //   */
-//   updateItem: (id, body) => api.patch(`/items/${id}`, body),
+  updateItem: (id, body) => api.patch(`/wishlist/item/${id}`, body),
 
 //   /*
 //   DELETE /items/:id
 //   */
-//   deleteItem: (id) => api.delete(`/items/${id}`),
+  deleteItem: (id) => api.delete(`/wishlist/items/${id}`),
+
+  
+  /*
+  PUT /item/:id
+  */
+  updateItemById: (id, body) => api.put(`/wishlist/items/${id}`, body),
+
 };
 
 export default wishlistApi;
