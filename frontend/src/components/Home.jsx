@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import problemsApi from "../api_sevices/problems_api";
+import useWorkspaceStore from "../store/workspaceStore";
 
 export default function Home() {
   const location = useLocation();
@@ -9,41 +10,41 @@ export default function Home() {
 
   const [loading, setLoading] = useState(false);
   const [problems, setProblems] = useState([]);
+  const [attempted, setAttempted] = useState({});
+
+  const addAttempted = useWorkspaceStore((s) => s.addAttempted);
 
   useEffect(() => {
     if (!topic) return;
 
     const fetchProblems = async () => {
-  try {
-    setLoading(true);
+      try {
+        setLoading(true);
 
-    const res = await problemsApi.problem(topic);
+        const res = await problemsApi.problem(topic);
 
-    console.log(res.data)
-    
-    const leetcode = res.data.problems.map(p => ({
-      title: p.title,
-      difficulty: p.difficulty,
-      url: `https://leetcode.com/problems/${toKebabCase(p.title)}`,
-      platform: "leetcode",
-      paidOnly: p.paid_only
-    }));
+        const leetcode = res.data.problems.map(p => ({
+          title: p.title,
+          difficulty: p.difficulty,
+          url: `https://leetcode.com/problems/${toKebabCase(p.title)}`,
+          platform: "leetcode",
+          paidOnly: p.paid_only
+        }));
 
-    const codeforces = (res.data["codeforces-problems"] || []).map(p => ({
-      title: p.name,
-      difficulty: p.rating ? `Rating ${p.rating}` : "N/A",
-      url: `https://codeforces.com/problemset/problem/${p.contestId}/${p.index}`,
-      platform: "codeforces"
-    }));
+        const codeforces = (res.data["codeforces-problems"] || []).map(p => ({
+          title: p.name,
+          difficulty: p.rating ? `Rating ${p.rating}` : "N/A",
+          url: `https://codeforces.com/problemset/problem/${p.contestId}/${p.index}`,
+          platform: "codeforces"
+        }));
 
-    setProblems([...leetcode, ...codeforces]);
-  } catch (error) {
-    console.error("Error fetching problems:", error);
-  } finally {
-    setLoading(false);
-  }
-};
-
+        setProblems([...leetcode, ...codeforces]);
+      } catch (error) {
+        console.error("Error fetching problems:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchProblems();
   }, [topic]);
@@ -77,7 +78,31 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="block"
               >
-                <div className="bg-white p-4 rounded shadow hover:shadow-md transition">
+                <div className="bg-white p-4 rounded shadow hover:shadow-md transition relative">
+                  <span
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      if (!attempted[index]) {
+                        addAttempted({
+                          title: p.title,
+                          url: p.url,
+                          platform: p.platform,
+                          done: false,
+                        });
+                      }
+
+                      setAttempted(prev => ({
+                        ...prev,
+                        [index]: !prev[index]
+                      }));
+                    }}
+                    className="absolute top-2 right-2 cursor-pointer text-lg"
+                  >
+                    {attempted[index] ? "✅" : "⬜"}
+                  </span>
+
                   <h2 className="font-bold">{p.title}</h2>
                   <p className="text-sm">Difficulty: {p.difficulty}</p>
 
@@ -89,7 +114,6 @@ export default function Home() {
                 </div>
               </a>
             ))}
-
           </div>
         )}
       </div>

@@ -97,7 +97,8 @@ async def create_user(response:Response, db: Annotated[Session,Depends(get_db)],
 
         return {
         "message": "User created successfully",
-        "access_token": access_token
+        "access_token": access_token,
+        "refresh_token": refresh_token
         }
 
 oauth2_scheme = HTTPBearer()
