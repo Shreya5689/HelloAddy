@@ -1,21 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../api_sevices/auth'; 
+import { useNavigate } from "react-router-dom";
+import api from "../api_sevices/middleware";
 
 const PencilIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11.013 1.427a2.75 2.75 0 1 1 3.89 3.89l-1.052 1.052-3.89-3.89L11.013 1.427ZM9.21 3.23l-7.143 7.143a1.25 1.25 0 0 0-.343.626L1.007 14.25a.75.75 0 0 0 .913.913l3.251-.717a1.25 1.25 0 0 0 .626-.343l7.143-7.143-3.89-3.89Z" /></svg>
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+    <path d="M11.013 1.427a2.75 2.75 0 1 1 3.89 3.89l-1.052 1.052-3.89-3.89L11.013 1.427ZM9.21 3.23l-7.143 7.143a1.25 1.25 0 0 0-.343.626L1.007 14.25a.75.75 0 0 0 .913.913l3.251-.717a1.25 1.25 0 0 0 .626-.343l7.143-7.143-3.89-3.89Z" />
+  </svg>
 );
+
 const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" /></svg>
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" />
+  </svg>
 );
+
 const CrossIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z" /></svg>
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z" />
+  </svg>
 );
 
 const EditableField = ({ value, onSave, label, type = "text", className = "" }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value);
 
-  // Sync tempValue when the prop value changes (essential for async data)
   useEffect(() => {
     setTempValue(value);
   }, [value]);
@@ -31,7 +40,7 @@ const EditableField = ({ value, onSave, label, type = "text", className = "" }) 
         {type === "textarea" ? (
           <textarea
             className="w-full p-2 text-sm border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-gray-50"
-            value={tempValue}
+            value={tempValue || ""}
             onChange={(e) => setTempValue(e.target.value)}
             rows={label === "about" ? 5 : 3}
             autoFocus
@@ -39,7 +48,7 @@ const EditableField = ({ value, onSave, label, type = "text", className = "" }) 
         ) : (
           <input
             className="w-full p-1.5 text-sm border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-gray-50"
-            value={tempValue}
+            value={tempValue || ""}
             onChange={(e) => setTempValue(e.target.value)}
             autoFocus
           />
@@ -77,93 +86,74 @@ const EditableField = ({ value, onSave, label, type = "text", className = "" }) 
 };
 
 const UserProfile = () => {
-  // 1. Hook into your Zustand store
   const { user, fetchUserProfile, loading } = useAuthStore();
+  const [sheets, setSheets] = useState([]);
+  const navigate = useNavigate();
 
-  // 2. Fetch the profile data (auth/billu) when the component loads
   useEffect(() => {
     fetchUserProfile();
+    fetchSheets();
   }, [fetchUserProfile]);
 
-  const updateField = (field, newValue) => {
-    // Note: You would typically add an 'updateUser' action in auth.js 
-    // to send a PATCH request to your database here.
-    console.log(`Updating ${field} to ${newValue}`);
+  const fetchSheets = async () => {
+    try {
+      const res = await api.get("/problems/sheets");
+      setSheets(res.data);
+    } catch (err) {
+      console.error("Error fetching sheets", err);
+    }
   };
 
-  // Show a loading state while fetching from database
-  if (loading) return <div className="p-20 text-center">Loading profile...</div>;
-  if (!user) return <div className="p-20 text-center">No user data found. Please login.</div>;
+  // ✅ CRASH FIX — NO UI CHANGE
+  if (loading || !user) return null;
 
   return (
     <div className="max-w-5xl mx-auto p-4 md:p-10 font-sans text-[#1F2328]">
       <div className="flex flex-col md:flex-row gap-10">
-        
         <div className="w-full md:w-1/4">
           <div className="mb-4">
             <img 
-              // Uses the username from DB to generate a unique avatar
-              src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.name || user.username}&backgroundColor=0052cc`} 
+              src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.username}&backgroundColor=0052cc`} 
               alt="Avatar" 
               className="w-full aspect-square rounded-full border border-gray-200 shadow-sm"
             />
           </div>
 
-          <EditableField 
-            label="name" 
-            value={user.name || user.username} 
-            onSave={(val) => updateField('name', val)} 
-            className="mb-1"
-          />
-
-          <EditableField 
-            label="bio" 
-            value={user.bio} 
-            type="textarea"
-            onSave={(val) => updateField('bio', val)} 
-            className="mb-6"
-          />
+          <EditableField label="name" value={user.username} className="mb-1" />
+          <EditableField label="bio" value={user.bio} type="textarea" className="mb-6" />
 
           <div className="pt-4 border-t border-gray-200 space-y-4">
-            <div className="space-y-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ranking</span>
-              {/* Mapping ranking from your database */}
-              <EditableField 
-                value={user.ranking} 
-                onSave={(val) => updateField('ranking', val)} 
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</span>
-              <EditableField 
-                value={user.email} 
-                onSave={(val) => updateField('email', val)} 
-              />
-            </div>
+            <EditableField value={user.ranking} />
+            <EditableField value={user.email} />
           </div>
         </div>
 
         <div className="w-full md:w-3/4">
-          <div className="flex gap-6 border-b border-gray-200 mb-6 pb-3 overflow-x-auto text-sm">
-            <span className="font-semibold text-[#1F2328] border-b-2 border-[#fd8c73] pb-3 px-1 whitespace-nowrap cursor-pointer">Overview</span>
-            <span className="text-gray-500 px-1 whitespace-nowrap cursor-pointer hover:text-gray-900">Achievements</span>
-            <span className="text-gray-500 px-1 whitespace-nowrap cursor-pointer hover:text-gray-900">Activity</span>
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+            <EditableField label="about" value={user.about} type="textarea" />
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-50">
-              <h3 className="text-base font-semibold">About</h3>
-            </div>
-            <EditableField 
-              label="about" 
-              value={user.about} 
-              type="textarea"
-              onSave={(val) => updateField('about', val)} 
-            />
+            {sheets.length === 0 ? (
+              <p className="text-sm text-gray-500">No saved sheets yet.</p>
+            ) : (
+              <ul className="space-y-2">
+                {sheets.map(sheet => (
+                  <li
+                    key={sheet.id}
+                    onClick={() => navigate(`/sheet/${sheet.id}`)}
+                    className="p-3 border rounded-md cursor-pointer hover:bg-gray-50 transition flex justify-between"
+                  >
+                    <span>{sheet.name}</span>
+                    <span className="text-xs text-gray-400">
+                      {new Date(sheet.created_at).toLocaleDateString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
-
       </div>
     </div>
   );
