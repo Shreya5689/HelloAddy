@@ -82,21 +82,23 @@ export default function Home() {
     return str.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
   }
 
-  const handleSaveSheet = async () => {
-    if(problems.length === 0) return;
-    try {
-        setSaving(true);
-        const sheetName = `${topic || "Custom"} Sheet - ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
-        
-        await saveSheetsApi.saveSheet({ name: sheetName, problems });
-        alert("Sheet saved successfully!");
-    } catch (err) {
-        console.error("Failed to save sheet", err);
-        alert("Failed to save sheet.");
-    } finally {
-        setSaving(false);
-    }
-  };
+const handleSaveSheet = async () => {
+  if (problems.length === 0) return;
+  try {
+    setSaving(true);
+    // Construct a name for the sheet
+    const sheetName = `${topic || "Custom"} Sheet - ${new Date().toLocaleDateString()}`;
+    
+    // Call the API service
+    await saveSheetsApi.saveSheet({ name: sheetName, problems });
+    alert("Sheet saved successfully!");
+  } catch (err) {
+    console.error("Failed to save sheet", err);
+    alert("Failed to save sheet.");
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <div className="w-full min-h-screen bg-[var(--primary)] flex justify-center py-10 pb-24">

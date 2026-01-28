@@ -21,7 +21,7 @@ const saveSheetsApi = {
   /*
   DELETE /problems/sheets/:id
   */
-  deleteSheet: (id) => api.delete(`/problems/sheets/${id}`),
+  deleteSheet: (id) => api.delete(`/problems/sheet/${id}`),
 };
 
 export default saveSheetsApi;
