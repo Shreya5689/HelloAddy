@@ -30,9 +30,11 @@ def get_tags(topic:str):
         """
 
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-
+    models = client.models.list()
+    # Switch the model to gemma3-4b (or 12b/27b depending on availability/need)
     response = client.models.generate_content(
-        model="gemini-2.5-flash", contents=prompt,
+        model="gemini-2.5-flash", 
+        contents=prompt,
         config={
             "response_mime_type": "application/json",
             "response_json_schema": Tags.model_json_schema(),
