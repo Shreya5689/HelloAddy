@@ -5,16 +5,37 @@ import useWorkspaceStore from "../store/workspaceStore";
 import api from "../api_sevices/middleware"; 
 import saveSheetsApi from "../api_sevices/save_sheets";
 
+// --- Attractive Emoji Icons ---
+const AttemptedIcon = ({ active }) => (
+    <div className={`text-2xl transition-all duration-300 transform hover:scale-125 ${active ? "drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "opacity-30 grayscale hover:grayscale-0 hover:opacity-100"}`}>
+        {active ? "✅" : "✔️"}
+    </div>
+);
+
+const FavouriteIcon = ({ active }) => (
+    <div className={`text-2xl transition-all duration-300 transform hover:scale-125 ${active ? "drop-shadow-[0_0_10px_rgba(239,68,68,0.7)]" : "opacity-30 grayscale hover:grayscale-0 hover:opacity-100"}`}>
+        {active ? "💖" : "🤍"}
+    </div>
+);
+
+const AddIcon = ({ active }) => (
+    <div className={`text-2xl transition-all duration-300 transform hover:rotate-12 hover:scale-125 ${active ? "drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" : "opacity-30 grayscale hover:grayscale-0 hover:opacity-100"}`}>
+        {active ? "🚀" : "➕"}
+    </div>
+);
 export default function Home() {
   const location = useLocation();
   const { topic } = location.state || {};
   
   const [loading, setLoading] = useState(false);
   const [problems, setProblems] = useState([]);
-  const [attempted, setAttempted] = useState({});
   const [saving, setSaving] = useState(false);
 
-  const addAttempted = useWorkspaceStore((s) => s.addAttempted);
+  const { addAttempted, fetchWorkspace, attempted, marked, important } = useWorkspaceStore();
+
+  useEffect(() => {
+    fetchWorkspace(); // Load workspace on mount
+  }, []);
 
   // Helper for difficulty sorting
   const getDifficultyValue = (diff) => {
@@ -23,10 +44,6 @@ export default function Home() {
     if (d === 'easy') return 1;
     if (d === 'medium') return 2;
     if (d === 'hard') return 3;
-    if (d.includes('rating')) {
-        const num = parseInt(d.replace('rating', '').trim());
-        return num || 4; 
-    }
     return 99;
   };
 
@@ -56,14 +73,8 @@ export default function Home() {
         }));
 
         let allProblems = [...leetcode, ...codeforces];
-
-        // 1. Shuffle
         allProblems.sort(() => Math.random() - 0.5);
-
-        // 2. Take 13 random
         const selected = allProblems.slice(0, 13);
-
-        // 3. Sort by difficulty
         selected.sort((a, b) => getDifficultyValue(a.difficulty) - getDifficultyValue(b.difficulty));
 
         setProblems(selected);
@@ -82,67 +93,109 @@ export default function Home() {
     return str.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
   }
 
-const handleSaveSheet = async () => {
-  if (problems.length === 0) return;
-  try {
-    setSaving(true);
-    // Construct a name for the sheet
-    const sheetName = `${topic || "Custom"} Sheet - ${new Date().toLocaleDateString()}`;
+   const handleAction = async (e, p, category) => {
+    e.preventDefault(); e.stopPropagation();
     
-    // Call the API service
-    await saveSheetsApi.saveSheet({ name: sheetName, problems });
-    alert("Sheet saved successfully!");
-  } catch (err) {
-    console.error("Failed to save sheet", err);
-    alert("Failed to save sheet.");
-  } finally {
-    setSaving(false);
-  }
-};
+    const backendCategory = category === 'attempted' ? 'attempted' : 
+                            category === 'favourite' ? 'marked' : 'important';
+                            
+    // Corrected to use the generic addItem method
+    await addItem({ 
+        title: p.title, 
+        url: p.url, 
+        platform: p.platform, 
+        done: category === 'attempted' 
+    }, backendCategory);
+    
+  };
+  const isMarked = (url, list) => list?.some(item => item.url === url);
+
+  const handleSaveSheet = async () => {
+    if (problems.length === 0) return;
+    try {
+      setSaving(true);
+      const sheetName = `${topic || "Custom"} Sheet - ${new Date().toLocaleDateString()}`;
+      await saveSheetsApi.saveSheet({ name: sheetName, problems });
+      alert("Sheet saved successfully!");
+    } catch (err) {
+      console.error("Failed to save sheet", err);
+      alert("Failed to save sheet.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-[var(--primary)] flex justify-center py-10 pb-24">
       <div className="w-[70vw] bg-[var(--secondary)] rounded-xl shadow-lg p-6 relative">
-        <h1 className="text-3xl font-bold mb-2 text-center">
+        <h1 className="text-3xl font-bold mb-2 text-center text-[var(--card)]">
           Problems for "{topic}"
         </h1>
 
         {loading ? (
-          <p className="text-center mt-6">Loading problems...</p>
-        ) : problems.length === 0 ? (
-          <p className="text-center mt-6">No problems found.</p>
+          <p className="text-center mt-6 text-[var(--card)] text-sm">Loading problems...</p>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-4">
-                {problems.map((p, index) => (
-                <a key={index} href={p.url} target="_blank" rel="noopener noreferrer" className="block">
-                    <div className="bg-white p-4 rounded shadow hover:shadow-md transition relative h-full">
-                    <span
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (!attempted[index]) {
-                                addAttempted({ title: p.title, url: p.url, platform: p.platform, done: false });
-                            }
-                            setAttempted(prev => ({ ...prev, [index]: !prev[index] }));
-                        }}
-                        className="absolute top-2 right-2 cursor-pointer text-lg"
-                    >
-                        {attempted[index] ? "✅" : "⬜"}
+              {problems.map((p, index) => (
+                <div key={index} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center group hover:shadow-md transition-all duration-300">
+                  {/* Left Side: Question Info */}
+                  <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex-1">
+                    <h2 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300">
+                        {p.title}
+                    </h2>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-50 px-2 py-0.5 rounded">
+                        {p.platform}
                     </span>
-                    <h2 className="font-bold pr-6">{p.title}</h2>
-                    <p className="text-sm">Difficulty: {p.difficulty}</p>
-                    {p.paidOnly && <span className="text-xs text-red-600">Premium</span>}
-                    </div>
-                </a>
-                ))}
+                    <span className={`text-[10px] font-bold uppercase ${
+                        p.difficulty?.toLowerCase() === 'easy' ? 'text-green-500' :
+                        p.difficulty?.toLowerCase() === 'medium' ? 'text-yellow-600' :
+                        'text-red-500'
+                    }`}>
+                        - {p.difficulty}
+                    </span>
+                    {p.paidOnly && (
+                        <span className="text-[10px] text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded animate-pulse">
+                            PREMIUM
+                        </span>
+                    )}
+                </div>
+            </a>
+            
+            {/* Right Side: Attractive Emoji Action Buttons */}
+            <div className="flex items-center gap-4 ml-4">
+                <button 
+                    onClick={(e) => handleAction(e, p, 'attempted')} 
+                    className="focus:outline-none p-1 transform active:scale-90 transition-transform"
+                    title="Mark as Attempted"
+                >
+                    <AttemptedIcon active={isMarked(p.url, attempted)} />
+                </button>
+                <button 
+                    onClick={(e) => handleAction(e, p, 'important')} 
+                    className="focus:outline-none p-1 transform active:scale-90 transition-transform"
+                    title="Add to Favourites"
+                >
+                    <FavouriteIcon active={isMarked(p.url, important)} />
+                </button>
+                <button 
+                    onClick={(e) => handleAction(e, p, 'marked')} 
+                    className="focus:outline-none p-1 transform active:scale-90 transition-transform"
+                    title="Add to Workspace"
+                >
+                    <AddIcon active={isMarked(p.url, marked)} />
+                </button>
+            </div>
+        </div>
+      ))}
             </div>
             
             <div className="flex justify-center mt-8">
                 <button 
                     onClick={handleSaveSheet}
                     disabled={saving}
-                    className="bg-[#1f883d] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-[#1a7f37] transition disabled:opacity-50 flex items-center gap-2"
+                    className="bg-[#1f883d] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-[#1a7f37] transition disabled:opacity-50"
                 >
                     {saving ? "Saving..." : "Save This Sheet"}
                 </button>

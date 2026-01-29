@@ -14,45 +14,39 @@ const useWorkspaceStore = create((set) => ({
         marked: res.data.marked || [],
         important: res.data.important || [],
       });
-    } catch (err) {
-      console.error("Failed to fetch workspace", err);
-    }
+    } catch (err) { console.error("Failed to fetch workspace", err); }
   },
 
-  addAttempted: async (item) => {
+  // Generic add function
+  addItem: async (item, category) => {
     try {
-      const res = await workspaceApi.addAttempted(item);
+      const res = await workspaceApi.addWorkspaceItem({ ...item, category });
       set((state) => ({
-        attempted: [...state.attempted, res.data],
+        [category]: [...state[category], res.data],
       }));
-    } catch (err) {
-      console.error("Failed to add attempted", err);
-    }
+    } catch (err) { console.error(`Failed to add ${category}`, err); }
   },
 
-  toggleAttemptedDone: async (id) => {
+  toggleDone: async (id, currentCategory) => {
+    // Optimistic UI update
     set((state) => ({
-      attempted: state.attempted.map((i) =>
+      [currentCategory]: state[currentCategory].map((i) =>
         i.id === id ? { ...i, done: !i.done } : i
       ),
     }));
 
     try {
-      await workspaceApi.toggleAttempted(id);
-    } catch (err) {
-      console.error(err);
-    }
+      await workspaceApi.toggleDone(id);
+    } catch (err) { console.error(err); }
   },
 
-  removeAttempted: async (id) => {
+  removeItem: async (id, category) => {
     try {
-      await workspaceApi.removeAttempted(id);
+      await workspaceApi.removeWorkspaceItem(id);
       set((state) => ({
-        attempted: state.attempted.filter((i) => i.id !== id),
+        [category]: state[category].filter((i) => i.id !== id),
       }));
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   },
 }));
 

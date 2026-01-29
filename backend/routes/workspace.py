@@ -40,17 +40,13 @@ def add_attempted(
     db: Annotated[Session, Depends(get_db)],
     user: dict = Depends(auth.get_current_user)
 ):
-    """
-    POST /workspace/attempted
-    Add a new attempted item
-    """
     new_item = WorkspaceItem(
         username=user["sub"],
         title=item.title,
         url=item.url,
         platform=item.platform,
         done=item.done,
-        category="attempted"
+        category=item.category # Change this from "attempted" to item.category
     )
     db.add(new_item)
     db.commit()

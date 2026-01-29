@@ -38,8 +38,10 @@ def get_sheets(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
         
+    # Fetches all sheets owned by this user, newest first
     sheets = db.query(UserSheet).filter(UserSheet.user_id == user.id).order_by(UserSheet.created_at.desc()).all()
     return sheets
+
 
 @router.get("/sheets/{sheet_id}")
 def get_sheet_details(

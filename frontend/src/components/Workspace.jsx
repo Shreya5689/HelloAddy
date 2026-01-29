@@ -9,40 +9,25 @@ export default function Workspace() {
   ];
 
   const [activeTab, setActiveTab] = useState("attempted");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const [editingIndex, setEditingIndex] = useState(null);
-
-  const {
-    attempted,
-    marked,
-    important,
-    fetchWorkspace,
-    toggleDone,
-    removeAttempted,
-  } = useWorkspaceStore();
-
-  const workspaceData = { attempted, marked, important };
+  const { attempted, marked, important, fetchWorkspace, toggleDone, removeItem } = useWorkspaceStore();
 
   useEffect(() => {
     fetchWorkspace();
   }, []);
 
-  const openModal = (index = null) => {
-    setEditingIndex(index);
-    setInputValue(index !== null ? workspaceData[activeTab][index].value : "");
-    setModalOpen(true);
+  // Filter logic for "Important Attempted"
+  const getDisplayData = () => {
+    if (activeTab === "attempted") return attempted;
+    if (activeTab === "marked") return marked.filter(i => !i.done);
+    if (activeTab === "important") {
+        // Show Rocket items + Favourites that are marked as Done
+        const favouritedDone = marked.filter(i => i.done);
+        return [...important, ...favouritedDone];
+    }
+    return [];
   };
 
-  const handleAddOrEdit = () => {};
-
-  const toggleDoneHandler = (index) => {
-    toggleDone(workspaceData[activeTab][index].id);
-  };
-
-  const removeItem = (index) => {
-    removeAttempted(workspaceData[activeTab][index].id);
-  };
+  const displayList = getDisplayData();
 
   return (
     <div className="min-h-screen bg-[var(--primary)] p-10 flex flex-col items-center">
@@ -62,35 +47,38 @@ export default function Workspace() {
 
       <div className="bg-[var(--secondary)] w-full max-w-6xl flex-1 rounded-3xl p-6 shadow-2xl min-h-[500px]">
         <ul className="space-y-4">
-          {workspaceData[activeTab].length === 0 && (
-            <li className="text-gray-400 italic text-sm">
-              Nothing here yet… click ➕ to add something! ✨
+          {displayList.length === 0 && (
+            <li className="text-gray-400 italic text-sm text-center py-10">
+              Nothing here yet… go explore some questions! ✨
             </li>
           )}
 
-          {workspaceData[activeTab].map((item, index) => (
-            <li
-              key={item.id}
-              className={`flex items-center gap-3 p-4 rounded-xl transition
-                ${item.done ? "bg-green-100 text-gray-500 line-through" : "bg-[var(--primary)]"}
-              `}
-            >
+          {displayList.map((item) => (
+            <li key={item.id} className={`flex items-center gap-3 p-4 rounded-xl transition ${item.done ? "bg-green-100/10 text-gray-400" : "bg-[var(--primary)] text-[var(--card)] shadow-sm"}`}>
+              {/* Tick Button */}
               <button
-                onClick={() => toggleDoneHandler(index)}
-                className={`w-6 h-6 rounded-full flex items-center justify-center border
-                  ${item.done ? "bg-green-500 text-white border-green-500" : "border-gray-400"}
+                onClick={() => toggleDone(item.id, item.category)}
+                className={`w-6 h-6 rounded-full flex items-center justify-center border transition
+                  ${item.done ? "bg-green-500 text-white border-green-500" : "border-gray-500 hover:border-green-400"}
                 `}
               >
                 {item.done && "✔"}
               </button>
 
-              <div className="flex-1 break-all">{item.title}</div>
+              <div className={`flex-1 break-all ${item.done ? "line-through opacity-50" : ""}`}>
+                <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition">
+                    {item.title}
+                </a>
+              </div>
 
-              {item.done && (
-                <button onClick={() => removeItem(index)} className="text-red-500 hover:text-red-700 transition">
-                  🗑
-                </button>
-              )}
+              {/* Delete Option - Now available for ALL items */}
+              <button 
+                onClick={() => removeItem(item.id, item.category)} 
+                className="text-gray-500 hover:text-red-500 transition-colors p-2"
+                title="Delete from Workspace"
+              >
+                🗑
+              </button>
             </li>
           ))}
         </ul>

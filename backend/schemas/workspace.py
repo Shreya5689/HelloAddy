@@ -6,3 +6,6 @@ class AddAttemptedRequest(BaseModel):
     url: Optional[str] = None
     platform: Optional[str] = None
     done: bool = False
+    category: str = "attempted" # 
+    
+
