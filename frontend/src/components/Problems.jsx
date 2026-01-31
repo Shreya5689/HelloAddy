@@ -11,7 +11,6 @@ const TOPICS = [
   "divide and conquer", "probabilities", "sortings", "binary search",
   "games", "dp", "ternary search", "shortest paths", "number theory",
   "interactive",
-
   "monotonic-stack", "data-stream", "iterator", "radix-sort",
   "breadth-first-search", "dynamic-programming", "line-sweep",
   "merge-sort", "topological-sort", "enumeration", "counting-sort",
@@ -44,7 +43,9 @@ export default function Problems() {
 
     navigate("/home", {
       state: {
-        topic: selectedTopics.length ? selectedTopics : [topic]
+        topic: selectedTopics.length
+          ? selectedTopics.join(", ")
+          : topic
       }
     });
   };
