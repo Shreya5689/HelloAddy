@@ -21,8 +21,12 @@ const useWorkspaceStore = create((set) => ({
   addItem: async (item, category) => {
     try {
       const res = await workspaceApi.addWorkspaceItem({ ...item, category });
+      const savedItem = {
+      ...res.data,
+      category, // 🔥 FORCE category
+    };
       set((state) => ({
-        [category]: [...state[category], res.data],
+        [category]: [...state[category], savedItem],
       }));
     } catch (err) { console.error(`Failed to add ${category}`, err); }
   },

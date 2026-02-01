@@ -31,7 +31,7 @@ export default function Home() {
   const [problems, setProblems] = useState([]);
   const [saving, setSaving] = useState(false);
 
-  const { addAttempted, fetchWorkspace, attempted, marked, important } = useWorkspaceStore();
+  const { addItem, fetchWorkspace, attempted, marked, important } = useWorkspaceStore();
 
   useEffect(() => {
     fetchWorkspace(); // Load workspace on mount
@@ -93,21 +93,27 @@ export default function Home() {
     return str.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
   }
 
-   const handleAction = async (e, p, category) => {
-    e.preventDefault(); e.stopPropagation();
-    
-    const backendCategory = category === 'attempted' ? 'attempted' : 
-                            category === 'favourite' ? 'marked' : 'important';
-                            
-    // Corrected to use the generic addItem method
-    await addItem({ 
-        title: p.title, 
-        url: p.url, 
-        platform: p.platform, 
-        done: category === 'attempted' 
-    }, backendCategory);
-    
-  };
+const handleAction = async (e, p, category) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  try {
+    await addItem(
+      {
+        title: p.title,
+        url: p.url,
+        platform: p.platform,
+        done: category === "attempted",
+      },
+      category
+    );
+
+    await fetchWorkspace(); // refresh workspace state
+  } catch (err) {
+    console.error("Failed to add item", err);
+  }
+};
+
   const isMarked = (url, list) => list?.some(item => item.url === url);
 
   const handleSaveSheet = async () => {
@@ -173,18 +179,18 @@ export default function Home() {
                     <AttemptedIcon active={isMarked(p.url, attempted)} />
                 </button>
                 <button 
-                    onClick={(e) => handleAction(e, p, 'important')} 
+                    onClick={(e) => handleAction(e, p, 'marked')} 
                     className="focus:outline-none p-1 transform active:scale-90 transition-transform"
                     title="Add to Favourites"
                 >
-                    <FavouriteIcon active={isMarked(p.url, important)} />
+                    <FavouriteIcon active={isMarked(p.url, marked)} />
                 </button>
                 <button 
-                    onClick={(e) => handleAction(e, p, 'marked')} 
+                    onClick={(e) => handleAction(e, p, 'important')} 
                     className="focus:outline-none p-1 transform active:scale-90 transition-transform"
                     title="Add to Workspace"
                 >
-                    <AddIcon active={isMarked(p.url, marked)} />
+                    <AddIcon active={isMarked(p.url, important)} />
                 </button>
             </div>
         </div>
