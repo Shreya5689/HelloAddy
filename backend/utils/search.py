@@ -33,6 +33,7 @@ class Tags(BaseModel):
     codeforces_tags: List[str]
     leetcode_tags: List[str]
 
+
 def get_tags(topic: str):
     prompt = f"""
     User has given you the query as input.

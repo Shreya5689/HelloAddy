@@ -94,8 +94,8 @@ def problem(topic:str,user_payload: dict = Depends(auth.get_current_user)):
 
     leetcode_tags=tags.get("leetcode_tags")
     codeforces_tags=tags.get("codeforces_tags")
-    # print(leetcode_tags)
-    # print(codeforces_tags)
+    print(leetcode_tags)
+    print(codeforces_tags)
     result = Query()
     # ans = result.search_problems(topic)
     # codeforces_problem = search_codeforces(topic)
