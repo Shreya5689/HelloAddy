@@ -101,7 +101,7 @@ def problem(topic:str,user_payload: dict = Depends(auth.get_current_user)):
     # codeforces_problem = search_codeforces(topic)
     ans = result.search_all_problems(leetcode_tags)
     codeforces_problem = search_codeforces(codeforces_tags)
-    # print (ans)
+    print (ans)
     # print("\n")
     # print(codeforces_problem)
     return {
