@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import problemsApi from "../api_sevices/problems_api";
 import useWorkspaceStore from "../store/workspaceStore";
-import api from "../api_sevices/middleware"; 
+import api from "../api_sevices/middleware";    
 import saveSheetsApi from "../api_sevices/save_sheets";
 
 // --- Attractive Emoji Icons ---
@@ -48,12 +48,17 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (!topic) return;
+    if (!topic && !selectedTopics_leetcode && !selectedTopics_codeforces) return;
 
     const fetchProblems = async () => {
       try {
         setLoading(true);
-        const res = await problemsApi.problem(topic);
+        if(!topic){
+          const res = await problemsApi.checkbox_problems(selectedTopics_leetcode.join(", "));
+        }
+        else{
+          const res = await problemsApi.problem(topic);
+        }
 
         const leetcode = res.data.problems.map(p => ({
           title: p.title,

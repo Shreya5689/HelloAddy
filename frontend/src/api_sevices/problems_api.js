@@ -28,7 +28,7 @@ const problemsApi = {
   }
   */
   // signup: (body) => api.post("/auth/signup", body),
-
+  checkbox_problems: (tags) => api.post("/problems/checkbox", tags),
   /*
   POST /auth/logout
   */

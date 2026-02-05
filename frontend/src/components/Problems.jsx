@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { checkbox_problems } from "../api_sevices/problems_api";
 
 /* ===================== TOPIC GROUPS ===================== */
 
@@ -34,26 +35,32 @@ export default function Problems() {
   if (!token) navigate("/login");
 
   const [topic, setTopic] = useState("");
-  const [selectedTopics, setSelectedTopics] = useState([]);
+  const [selectedTopics_leetcode, setSelectedTopics_leetcode] = useState([]);
+  const [selectedTopics_codeforces, setSelectedTopics_codeforces] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const toggleTopic = (t) => {
-    setSelectedTopics((prev) =>
+    setSelectedTopics_leetcode((prev) =>
+      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
+    );
+  };
+
+  const toggleTopic_codeforces = (t) => {
+    setSelectedTopics_codeforces((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
     );
   };
 
   const handleSubmit = () => {
-    if (!topic.trim() && selectedTopics.length === 0) return;
+    if (!topic.trim() && selectedTopics_leetcode.length === 0 && selectedTopics_codeforces.length === 0) return;
 
     setLoading(true);
-
     navigate("/home", {
       state: {
-        topic: selectedTopics.length
-          ? selectedTopics.join(", ")
-          : topic
-      }
+        topic: topic,
+        codeforces_tags: selectedTopics_codeforces,
+        leetcode_tags: selectedTopics_leetcode,
+      },
     });
   };
 
@@ -105,7 +112,7 @@ export default function Problems() {
                   >
                     <input
                       type="checkbox"
-                      checked={selectedTopics.includes(t)}
+                      checked={selectedTopics_leetcode.includes(t)}
                       onChange={() => toggleTopic(t)}
                     />
                     {t}
@@ -128,8 +135,8 @@ export default function Problems() {
                   >
                     <input
                       type="checkbox"
-                      checked={selectedTopics.includes(t)}
-                      onChange={() => toggleTopic(t)}
+                      checked={selectedTopics_codeforces.includes(t)}
+                      onChange={() => toggleTopic_codeforces(t)}
                     />
                     {t}
                   </label>

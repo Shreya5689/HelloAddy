@@ -12,3 +12,8 @@ class ProblemItem(BaseModel):
 class SaveSheetRequest(BaseModel):
     name: str
     problems: List[ProblemItem]
+
+class CheckboxRequest(BaseModel):
+    codeforces_tags: List[str]
+    leetcode_tags: List[str]
+

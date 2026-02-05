@@ -3,12 +3,14 @@ from clients.leetcode.client import Query
 from clients.codeforces.client import search_codeforces
 from utils import auth
 from utils.search import get_tags
-from schemas.problems import SaveSheetRequest
+from schemas.problems import SaveSheetRequest,CheckboxRequest
 from sqlalchemy.orm import Session
 from database import get_db
 from models.problems import UserSheet, UserProblemSheet
 from models.auth.user import Users # Assuming you have this
 from CRUD.problems import create_user_sheet
+
+
 
 router=APIRouter()
 
@@ -82,9 +84,24 @@ def delete_sheet(
     
     return {"message": "Sheet deleted successfully"}
     
+@router.get("/checkbox")
+def checkbox_problem(tags:CheckboxRequest,user_payload: dict = Depends(auth.get_current_user)):
+    leetcode_tags=tags.leetcode_tags
+    codeforces_tags=tags.codeforces_tags
+    result = Query()
+    # ans = result.search_problems(topic)
+    # codeforces_problem = search_codeforces(topic)
+    ans = result.search_all_problems(leetcode_tags)
+    codeforces_problem = search_codeforces(codeforces_tags)
+    print (ans)
+    # print("\n")
+    # print(codeforces_problem)
+    return {
+        "problems":ans,
+        "codeforces-problems": codeforces_problem
+    }
 
     
-
 
 @router.post("/{topic}")
 def problem(topic:str,user_payload: dict = Depends(auth.get_current_user)):
@@ -108,3 +125,7 @@ def problem(topic:str,user_payload: dict = Depends(auth.get_current_user)):
         "problems":ans,
         "codeforces-problems": codeforces_problem
     }
+
+    
+
+
