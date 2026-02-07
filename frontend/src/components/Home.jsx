@@ -5,6 +5,9 @@ import useWorkspaceStore from "../store/workspaceStore";
 import api from "../api_sevices/middleware";    
 import saveSheetsApi from "../api_sevices/save_sheets";
 
+
+
+
 // --- Attractive Emoji Icons ---
 const AttemptedIcon = ({ active }) => (
     <div className={`text-2xl transition-all duration-300 transform hover:scale-125 ${active ? "drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "opacity-30 grayscale hover:grayscale-0 hover:opacity-100"}`}>
@@ -25,7 +28,7 @@ const AddIcon = ({ active }) => (
 );
 export default function Home() {
   const location = useLocation();
-  const { topic } = location.state || {};
+  const { topic, tags_leetcode, tags_codeforces } = location.state || {};
   
   const [loading, setLoading] = useState(false);
   const [problems, setProblems] = useState([]);
@@ -48,16 +51,21 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (!topic && !selectedTopics_leetcode && !selectedTopics_codeforces) return;
+    if (!topic && !tags_leetcode && !tags_codeforces) return;
 
     const fetchProblems = async () => {
       try {
+        var res;
         setLoading(true);
         if(!topic){
-          const res = await problemsApi.checkbox_problems(selectedTopics_leetcode.join(", "));
+          const body = {
+            leetcode_tags: tags_leetcode,
+            codeforces_tags: tags_codeforces
+          }
+           res = await problemsApi.checkbox_problems(body);
         }
         else{
-          const res = await problemsApi.problem(topic);
+           res = await problemsApi.problem(topic);
         }
 
         const leetcode = res.data.problems.map(p => ({
@@ -91,7 +99,7 @@ export default function Home() {
     };
 
     fetchProblems();
-  }, [topic]);
+  }, [topic,tags_codeforces,tags_leetcode]);
 
   function toKebabCase(str) {
     if(!str) return "";

@@ -83,8 +83,9 @@ def delete_sheet(
     db.commit()
     
     return {"message": "Sheet deleted successfully"}
+
     
-@router.get("/checkbox")
+@router.post("/checkbox")
 def checkbox_problem(tags:CheckboxRequest,user_payload: dict = Depends(auth.get_current_user)):
     leetcode_tags=tags.leetcode_tags
     codeforces_tags=tags.codeforces_tags

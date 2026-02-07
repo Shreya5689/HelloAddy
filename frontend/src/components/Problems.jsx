@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { checkbox_problems } from "../api_sevices/problems_api";
 
 /* ===================== TOPIC GROUPS ===================== */
 
@@ -48,18 +47,31 @@ export default function Problems() {
   const toggleTopic_codeforces = (t) => {
     setSelectedTopics_codeforces((prev) =>
       prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
-    );
+    );     
   };
 
   const handleSubmit = () => {
-    if (!topic.trim() && selectedTopics_leetcode.length === 0 && selectedTopics_codeforces.length === 0) return;
+    if (!topic.trim()) return;
 
     setLoading(true);
     navigate("/home", {
       state: {
         topic: topic,
-        codeforces_tags: selectedTopics_codeforces,
-        leetcode_tags: selectedTopics_leetcode,
+        tags_leetcode: null,
+        tags_codeforces: null
+      },
+    });
+  };
+
+    const handle_checkbox_Submit = () => {
+    if (selectedTopics_leetcode.length === 0 && selectedTopics_codeforces.length === 0) return;
+
+    setLoading(true);
+    navigate("/home", {
+      state: {
+        topic: null,
+        tags_codeforces: selectedTopics_codeforces,
+        tags_leetcode: selectedTopics_leetcode
       },
     });
   };
@@ -147,7 +159,7 @@ export default function Problems() {
           </div>
 
           <button
-            onClick={handleSubmit}
+            onClick={handle_checkbox_Submit}
             className="self-center mt-2 bg-[var(--card)] text-white py-2 px-6 rounded-lg hover:opacity-90 transition"
           >
             Submit Selected
