@@ -51,6 +51,7 @@ query favoriteQuestionList(
 LEETCODE_QUERY_ALL_QUESTIONS="""
 query problemsetQuestionList($limit: Int!, $skip: Int!) {
   problemsetQuestionListV2(limit: $limit, skip: $skip) {
+    totalLength
     questions {
       title
       titleSlug
@@ -79,71 +80,50 @@ class Problem:
 
 @strawberry.type
 class Query:
-    
+
     @strawberry.field
-    def search_all_problems(self, tags: List[str]=None)->List[Problem]:
+    def search_all_problems(self, tags: List[str] = None) -> List[Problem]:
         results: List[Problem] = []
 
-        skip=0
-        limit=1000
+        skip = 0
+        limit = 100
 
-        response = requests.post(
-          LEETCODE_URL,
-          headers=HEADERS,
-          json={
-              "query": LEETCODE_QUERY_ALL_QUESTIONS,
-              "variables": {
-                  "limit": limit,
-                  "skip": skip
-              }
-            },
-          timeout=15,
-        )
+        while True:
+            payload = requests.post(
+                LEETCODE_URL,
+                headers=HEADERS,
+                json={
+                    "query": LEETCODE_QUERY_ALL_QUESTIONS,
+                    "variables": {"limit": limit, "skip": skip},
+                },
+                timeout=15,
+            ).json()
 
+            data = payload["data"]["problemsetQuestionListV2"]
+            questions = data["questions"]
+            total = data["totalLength"]
 
-        # if response.status_code != 200:
-          # raise RuntimeError(f"LeetCode error: {response.text}")
+            for q in questions:
+                tag_slugs = [tag["slug"] for tag in q["topicTags"]]
 
-        payload = response.json()
-        # if "errors" in payload:
-        #   raise RuntimeError(payload["errors"])
+                if tags is None or any(tag in tag_slugs for tag in tags):
+                    results.append(
+                        Problem(
+                            title=q["title"],
+                            title_slug=q["titleSlug"],
+                            difficulty=q["difficulty"],
+                            ac_rate=float(q["acRate"] or 0),
+                            tags=tag_slugs,
+                            paid_only=q["paidOnly"],
+                        )
+                    )
 
-        questions = payload["data"]["problemsetQuestionListV2"]["questions"]
+            skip += limit
+            if skip >= total:
+                break
 
-        if tags==None:
-          for q in questions:
-            tag_slugs = [tag["slug"] for tag in q["topicTags"]]
-
-            results.append(
-              Problem(
-                title=q["title"],
-                title_slug=q["titleSlug"],
-                difficulty=q["difficulty"],
-                ac_rate=float(q["acRate"] or 0),
-                tags=tag_slugs,
-                paid_only=q["paidOnly"],
-              )
-            )
-        
-        else:
-            # filter based on tags
-            # print(tags)
-          for q in questions:
-            tag_slugs = [tag["slug"] for tag in q["topicTags"]]
-            for tag in tags:
-              if tag in tag_slugs:
-                results.append(
-                  Problem(
-                      title=q["title"],
-                    title_slug=q["titleSlug"],
-                    difficulty=q["difficulty"],
-                    ac_rate=float(q["acRate"] or 0),
-                    tags=tag_slugs,
-                    paid_only=q["paidOnly"],
-                  )
-                )
-        skip += limit
         return results
+
 
           
 

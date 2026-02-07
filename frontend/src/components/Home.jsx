@@ -148,7 +148,7 @@ const handleAction = async (e, p, category) => {
     <div className="w-full min-h-screen bg-[var(--primary)] flex justify-center py-10 pb-24">
       <div className="w-[70vw] bg-[var(--secondary)] rounded-xl shadow-lg p-6 relative">
         <h1 className="text-3xl font-bold mb-2 text-center text-[var(--card)]">
-          Problems for "{topic}"
+          Problems for "{topic} {tags_leetcode} {tags_codeforces}"
         </h1>
 
         {loading ? (
