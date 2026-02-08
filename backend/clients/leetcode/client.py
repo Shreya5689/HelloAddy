@@ -3,6 +3,8 @@ import requests
 import os
 from typing import List
 import strawberry
+import asyncio
+import httpx
 
 
 CSRFTOKEN = os.getenv("LEETCODE_CSRFTOKEN")
@@ -82,29 +84,51 @@ class Problem:
 class Query:
 
     @strawberry.field
-    def search_all_problems(self, tags: List[str] = None) -> List[Problem]:
+    async def search_all_problems(self, tags: List[str] = None) -> List[Problem]:
+        limit = 100
         results: List[Problem] = []
 
-        skip = 0
-        limit = 100
+        async with httpx.AsyncClient(headers=HEADERS, timeout=15) as client:
 
-        while True:
-            payload = requests.post(
+            # ---- First call (to get totalLength) ----
+            first_resp = await client.post(
                 LEETCODE_URL,
-                headers=HEADERS,
                 json={
                     "query": LEETCODE_QUERY_ALL_QUESTIONS,
-                    "variables": {"limit": limit, "skip": skip},
+                    "variables": {"limit": limit, "skip": 0},
                 },
-                timeout=15,
-            ).json()
+            )
 
-            data = payload["data"]["problemsetQuestionListV2"]
-            questions = data["questions"]
-            total = data["totalLength"]
+            first_data = first_resp.json()["data"]["problemsetQuestionListV2"]
+            total = first_data["totalLength"]
 
+            # process first page
+            pages = [first_data["questions"]]
+
+            # ---- Prepare remaining parallel calls ----
+            tasks = []
+            for skip in range(limit, total, limit):
+                tasks.append(
+                    client.post(
+                        LEETCODE_URL,
+                        json={
+                            "query": LEETCODE_QUERY_ALL_QUESTIONS,
+                            "variables": {"limit": limit, "skip": skip},
+                        },
+                    )
+                )
+
+            # ---- Execute ALL calls in parallel ----
+            responses = await asyncio.gather(*tasks)
+
+            for resp in responses:
+                data = resp.json()["data"]["problemsetQuestionListV2"]
+                pages.append(data["questions"])
+
+        # ---- Flatten + filter ----
+        for questions in pages:
             for q in questions:
-                tag_slugs = [tag["slug"] for tag in q["topicTags"]]
+                tag_slugs = [t["slug"] for t in q["topicTags"]]
 
                 if tags is None or any(tag in tag_slugs for tag in tags):
                     results.append(
@@ -118,14 +142,11 @@ class Query:
                         )
                     )
 
-            skip += limit
-            if skip >= total:
-                break
-
         return results
 
 
-          
+
+
 
     @strawberry.field
     def search_problems(self, keyword: str) -> List[Problem]:

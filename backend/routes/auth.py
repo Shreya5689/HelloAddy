@@ -47,10 +47,10 @@ async def login(response:Response, db: Annotated[Session, Depends(get_db)], crea
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,          
-        samesite="lax",
+        secure=True,          
+        samesite="none",
         max_age=7 * 24 * 60 * 60,
-        path="/refresh"        
+        path="/"        
         )
         profile = get_profile(db, user.username)
 
@@ -89,10 +89,10 @@ async def create_user(response:Response, db: Annotated[Session,Depends(get_db)],
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,          
-        samesite="lax",
+        secure=True,          
+        samesite="none",
         max_age=7 * 24 * 60 * 60,
-        path="/refresh"        
+        path="/"        
         )
 
         return {
