@@ -86,13 +86,13 @@ def delete_sheet(
 
     
 @router.post("/checkbox")
-def checkbox_problem(tags:CheckboxRequest,user_payload: dict = Depends(auth.get_current_user)):
+async def checkbox_problem(tags:CheckboxRequest,user_payload: dict = Depends(auth.get_current_user)):
     leetcode_tags=tags.leetcode_tags
     codeforces_tags=tags.codeforces_tags
     result = Query()
     # ans = result.search_problems(topic)
     # codeforces_problem = search_codeforces(topic)
-    ans = result.search_all_problems(leetcode_tags)
+    ans = await result.search_all_problems(leetcode_tags)
     codeforces_problem = search_codeforces(codeforces_tags)
     print (ans)
     # print("\n")
@@ -105,7 +105,7 @@ def checkbox_problem(tags:CheckboxRequest,user_payload: dict = Depends(auth.get_
     
 
 @router.post("/{topic}")
-def problem(topic:str,user_payload: dict = Depends(auth.get_current_user)):
+async def problem(topic:str,user_payload: dict = Depends(auth.get_current_user)):
     tags = get_tags(topic)
     # print(type(tags))
     # print("Logged-in user:", user_payload["sub"])
@@ -117,7 +117,7 @@ def problem(topic:str,user_payload: dict = Depends(auth.get_current_user)):
     result = Query()
     # ans = result.search_problems(topic)
     # codeforces_problem = search_codeforces(topic)
-    ans = result.search_all_problems(leetcode_tags)
+    ans = await result.search_all_problems(leetcode_tags)
     codeforces_problem = search_codeforces(codeforces_tags)
     print (ans)
     # print("\n")
