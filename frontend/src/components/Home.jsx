@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import problemsApi from "../api_sevices/problems_api";
 import useWorkspaceStore from "../store/workspaceStore";
 import api from "../api_sevices/middleware";    
+import {useAuthStore} from "../api_sevices/auth";
 import saveSheetsApi from "../api_sevices/save_sheets";
 
 
@@ -29,6 +30,7 @@ const AddIcon = ({ active }) => (
 export default function Home() {
   const location = useLocation();
   const { topic, tags_leetcode, tags_codeforces } = location.state || {};
+  const {user} = useAuthStore();
   
   const [loading, setLoading] = useState(false);
   const [problems, setProblems] = useState([]);
@@ -86,6 +88,20 @@ export default function Home() {
         }));
 
         let allProblems = [...leetcode, ...codeforces];
+        if (user?.ranking === "beginner") {
+          allProblems = allProblems.filter((p) => {
+            if (p.platform === "leetcode") {
+              return p.difficulty?.toLowerCase() === "easy";
+            }
+            if (p.platform === "codeforces") {
+              // p.difficulty is stored as "Rating 800", "Rating 1200", etc.
+      const rating = parseInt(p.difficulty?.replace(/\D/g, ""), 10);
+      return !isNaN(rating) && rating <= 1000;
+    }
+    return true;
+  });
+}
+
         allProblems.sort(() => Math.random() - 0.5);
         const selected = allProblems.slice(0, 13);
         selected.sort((a, b) => getDifficultyValue(a.difficulty) - getDifficultyValue(b.difficulty));
