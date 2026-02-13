@@ -11,6 +11,8 @@ def get_all_tags_from_codeforces():
 
     for p in codeforces_problem:
         codeforces_tags.update(p["tags"])
+
+    
     return  codeforces_tags
 
 codeforces_tag = get_all_tags_from_codeforces()

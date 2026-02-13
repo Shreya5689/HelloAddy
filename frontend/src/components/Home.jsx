@@ -75,8 +75,8 @@ export default function Home() {
           difficulty: p.difficulty,
           url: `https://leetcode.com/problems/${toKebabCase(p.title)}`,
           platform: "leetcode",
-          paidOnly: p.paid_only,
-          topic: topic
+          paidOnly: p.paid_only || false,
+          topic: topic || "Custom"
         }));
 
         const codeforces = (res.data["codeforces-problems"] || []).map(p => ({
@@ -84,29 +84,10 @@ export default function Home() {
           difficulty: p.rating ? `Rating ${p.rating}` : "N/A",
           url: `https://codeforces.com/problemset/problem/${p.contestId}/${p.index}`,
           platform: "codeforces",
-          topic: topic
+          topic: topic || "Custom"
         }));
 
-        let allProblems = [...leetcode, ...codeforces];
-        if (user?.ranking === "beginner") {
-          allProblems = allProblems.filter((p) => {
-            if (p.platform === "leetcode") {
-              return p.difficulty?.toLowerCase() === "easy";
-            }
-            if (p.platform === "codeforces") {
-              // p.difficulty is stored as "Rating 800", "Rating 1200", etc.
-      const rating = parseInt(p.difficulty?.replace(/\D/g, ""), 10);
-      return !isNaN(rating) && rating <= 1000;
-    }
-    return true;
-  });
-}
-
-        allProblems.sort(() => Math.random() - 0.5);
-        const selected = allProblems.slice(0, 13);
-        selected.sort((a, b) => getDifficultyValue(a.difficulty) - getDifficultyValue(b.difficulty));
-
-        setProblems(selected);
+        setProblems([...leetcode, ...codeforces]);
       } catch (error) {
         console.error("Error fetching problems:", error);
       } finally {
@@ -132,6 +113,7 @@ const handleAction = async (e, p, category) => {
         title: p.title,
         url: p.url,
         platform: p.platform,
+        paid_only: p.paid_only,
         done: category === "attempted",
       },
       category
@@ -190,7 +172,7 @@ const handleAction = async (e, p, category) => {
                     }`}>
                         - {p.difficulty}
                     </span>
-                    {p.paidOnly && (
+                    {p.paid_only && (
                         <span className="text-[10px] text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded animate-pulse">
                             PREMIUM
                         </span>

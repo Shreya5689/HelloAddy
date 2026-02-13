@@ -7,12 +7,55 @@ from schemas.problems import SaveSheetRequest,CheckboxRequest
 from sqlalchemy.orm import Session
 from database import get_db
 from models.problems import UserSheet, UserProblemSheet
-from models.auth.user import Users # Assuming you have this
+from models.auth.user import Users, UserProfile # Assuming you have this
 from CRUD.problems import create_user_sheet
-
+import random
 
 
 router=APIRouter()
+
+
+def get_difficulty_value(p, platform):
+
+    if platform == "leetcode":
+        d = p.difficulty.lower()
+        if d == 'easy': return 1
+        if d == 'medium': return 2
+        if d == 'hard': return 3
+    else:  # codeforces
+        return p.get("rating", 9999)
+    return 99
+    
+async def get_balanced_problems(lc_tags, cf_tags, user_ranking):
+    """Common logic for filtering, shuffling, and even distribution."""
+    result = Query()
+    lc_all = await result.search_all_problems(lc_tags)
+    cf_all = search_codeforces(cf_tags)
+    # 1. Apply Ranking Filter (Beginner only)
+    if user_ranking == "beginner":
+        lc_all = [p for p in lc_all if p.difficulty.lower() == "easy"]
+        cf_all = [p for p in cf_all if p.get("rating") and p.get("rating") <= 1000]
+    # 2. Shuffle independently for variety
+    random.shuffle(lc_all)
+    random.shuffle(cf_all)
+    # 3. Even Distribution (Target 13 problems total)
+    total_target = 13
+    half = (total_target // 2) + 1  # 7
+    other_half = total_target - half # 6
+    if len(lc_all) >= half and len(cf_all) >= other_half:
+        lc_final = lc_all[:half]
+        cf_final = cf_all[:other_half]
+    elif len(lc_all) < half:
+        lc_final = lc_all
+        cf_final = cf_all[:total_target - len(lc_final)]
+    else:
+        cf_final = cf_all
+        lc_final = lc_all[:total_target - len(cf_final)]
+    # 4. Final Rank-based Sorting
+    lc_final.sort(key=lambda x: get_difficulty_value(x, "leetcode"))
+    cf_final.sort(key=lambda x: get_difficulty_value(x, "codeforces"))
+    return lc_final, cf_final
+
 
 @router.post("/save_sheet")
 def save_sheet(
@@ -84,48 +127,65 @@ def delete_sheet(
     
     return {"message": "Sheet deleted successfully"}
 
-    
-@router.post("/checkbox")
-async def checkbox_problem(tags:CheckboxRequest,user_payload: dict = Depends(auth.get_current_user)):
-    leetcode_tags=tags.leetcode_tags
-    codeforces_tags=tags.codeforces_tags
-    result = Query()
-    # ans = result.search_problems(topic)
-    # codeforces_problem = search_codeforces(topic)
-    ans = await result.search_all_problems(leetcode_tags)
-    codeforces_problem = search_codeforces(codeforces_tags)
-    print (ans)
-    # print("\n")
-    # print(codeforces_problem)
-    return {
-        "problems":ans,
-        "codeforces-problems": codeforces_problem
-    }
 
-    
+@router.post("/checkbox")
+async def checkbox_problem(
+    tags: CheckboxRequest, 
+    user_payload: dict = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Get user ranking for filtering
+    profile = db.query(UserProfile).filter(UserProfile.username == user_payload["sub"]).first()
+    user_ranking = profile.ranking if profile else "medium"
+    lc_final, cf_final = await get_balanced_problems(tags.leetcode_tags, tags.codeforces_tags, user_ranking)
+    return {
+        "problems": lc_final,
+        "codeforces-problems": cf_final
+    }
 
 @router.post("/{topic}")
-async def problem(topic:str,user_payload: dict = Depends(auth.get_current_user)):
+async def problem(
+    topic: str, 
+    user_payload: dict = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Get user ranking for filtering
+    profile = db.query(UserProfile).filter(UserProfile.username == user_payload["sub"]).first()
+    user_ranking = profile.ranking if profile else "medium"
+    # Get related tags from Gemini
     tags = get_tags(topic)
-    # print(type(tags))
-    # print("Logged-in user:", user_payload["sub"])
-
-    leetcode_tags=tags.get("leetcode_tags")
-    codeforces_tags=tags.get("codeforces_tags")
-    print(leetcode_tags)
-    print(codeforces_tags)
-    result = Query()
-    # ans = result.search_problems(topic)
-    # codeforces_problem = search_codeforces(topic)
-    ans = await result.search_all_problems(leetcode_tags)
-    codeforces_problem = search_codeforces(codeforces_tags)
-    print (ans)
-    # print("\n")
-    # print(codeforces_problem)
+    lc_tags = tags.get("leetcode_tags", [])
+    cf_tags = tags.get("codeforces_tags", [])
+    lc_final, cf_final = await get_balanced_problems(lc_tags, cf_tags, user_ranking)
     return {
-        "problems":ans,
-        "codeforces-problems": codeforces_problem
+        "problems": lc_final,
+        "codeforces-problems": cf_final
     }
+
+    
+
+# @router.post("/{topic}")
+# async def problem(topic:str,user_payload: dict = Depends(auth.get_current_user)):
+#     tags = get_tags(topic)
+#     # print(type(tags))
+#     # print("Logged-in user:", user_payload["sub"])
+
+#     leetcode_tags=tags.get("leetcode_tags")
+#     codeforces_tags=tags.get("codeforces_tags")
+#     print(leetcode_tags)
+#     print(codeforces_tags)
+#     result = Query()
+#     # ans = result.search_problems(topic)
+#     # codeforces_problem = search_codeforces(topic)
+#     ans = await result.search_all_problems(leetcode_tags)
+#     codeforces_problem = search_codeforces(codeforces_tags)
+#     print (ans)
+#     # print("\n")
+#     # print(codeforces_problem)
+#     return {
+#         "problems":ans,
+#         "codeforces-problems": codeforces_problem
+#     }
 
     
 
