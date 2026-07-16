@@ -1,24 +1,149 @@
 @import "tailwindcss";
+
 :root {
-  /* Brand */
-  --primary: #FAF3E1;      /* background */
-  --secondary: #FFFFFF;   /* cards / containers */
-  --tertiary: #1CB0F6;    /* main action button */
+  /* Brand Theme Colors */
+  --primary: #020a13;         /* Deep dark-blue background */
+  --secondary: #061424;       /* Translucent dark panel background */
+  --tertiary: #c5ff00;        /* Neon yellow-green accent */
 
   /* Accents */
-  --accent-green: #58CC02;
-  --accent-orange: #FF9600;
-  --accent-purple: #7C5CFF;
+  --accent-green: #c5ff00;
+  --accent-orange: #ff9600;
+  --accent-purple: #7c5cff;
 
   /* Button states */
-  --tertiary-hover: #1494CC;
-  --tertiary-disabled: #9DD7F7;
+  --tertiary-hover: #aee600;
+  --tertiary-disabled: #4e6600;
 
-  /* Text */
-  --text-primary: #1F2937;
-  --text-secondary: #6B7280;
+  /* Text Colors */
+  --text-primary: #ffffff;    /* Primary white text */
+  --text-secondary: #587b9a;  /* Secondary/muted cyan-grey text */
 
-  /* UI */
-  --border-soft: #E5E7EB;
-  --card: #111827;
+  /* UI Borders & Highlights */
+  --border-soft: #0f2b48;     /* Tech-blue borders */
+  --card: #c5ff00;            /* Neon highlights */
+}
+
+/* Global Body Styling with radial tech glow */
+body {
+  background-color: #020a13;
+  background-image: radial-gradient(circle at 80% 20%, #08213b 0%, #020a13 70%);
+  background-attachment: fixed;
+  color: #ffffff;
+  min-height: 100vh;
+}
+
+/* Custom Scrollbar for list containers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(6, 20, 36, 0.4);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(197, 255, 0, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 255, 0, 0.6);
+}
+
+/* Custom Cyber Checkboxes (Sleek tech outline and neon checkmark) */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: transparent;
+  margin: 0;
+  font: inherit;
+  color: #587b9a;
+  width: 1.15em;
+  height: 1.15em;
+  border: 1px solid #587b9a;
+  border-radius: 3px;
+  transform: translateY(-0.075em);
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+input[type="checkbox"]::before {
+  content: "";
+  width: 0.65em;
+  height: 0.65em;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  box-shadow: inset 1em 1em #c5ff00;
+  transform-origin: center;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+input[type="checkbox"]:checked {
+  border-color: #c5ff00;
+}
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+/* Cyber Panels (Translucent dark panel with neon-green corner hooks) */
+.cyber-panel {
+  position: relative;
+  background: rgba(6, 20, 36, 0.6);
+  border: 1px solid rgba(197, 255, 0, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cyber-panel::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid #c5ff00;
+  border-left: 2px solid #c5ff00;
+  pointer-events: none;
+}
+.cyber-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-bottom: 2px solid #c5ff00;
+  border-right: 2px solid #c5ff00;
+  pointer-events: none;
+}
+
+/* Cyber Panels - Cyan Variant (Cyan border with neon-green corner hooks) */
+.cyber-panel-cyan {
+  position: relative;
+  background: rgba(6, 20, 36, 0.6);
+  border: 1px solid rgba(0, 191, 255, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cyber-panel-cyan::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid #c5ff00;
+  border-left: 2px solid #c5ff00;
+  pointer-events: none;
+}
+.cyber-panel-cyan::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-bottom: 2px solid #c5ff00;
+  border-right: 2px solid #c5ff00;
+  pointer-events: none;
 }

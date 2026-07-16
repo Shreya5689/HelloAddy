@@ -6,27 +6,25 @@ import api from "../api_sevices/middleware";
 import {useAuthStore} from "../api_sevices/auth";
 import saveSheetsApi from "../api_sevices/save_sheets";
 
-
-
-
-// --- Attractive Emoji Icons ---
+// --- Attractive Emoji Icons with Custom glows ---
 const AttemptedIcon = ({ active }) => (
-    <div className={`text-2xl transition-all duration-300 transform hover:scale-125 ${active ? "drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "opacity-30 grayscale hover:grayscale-0 hover:opacity-100"}`}>
-        {active ? "✅" : "✔️"}
-    </div>
+  <div className={`text-xl transition-all duration-300 transform hover:scale-125 ${active ? "drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "opacity-30 grayscale hover:grayscale-0 hover:opacity-100"}`}>
+    {active ? "✅" : "✔️"}
+  </div>
 );
 
 const FavouriteIcon = ({ active }) => (
-    <div className={`text-2xl transition-all duration-300 transform hover:scale-125 ${active ? "drop-shadow-[0_0_10px_rgba(239,68,68,0.7)]" : "opacity-30 grayscale hover:grayscale-0 hover:opacity-100"}`}>
-        {active ? "💖" : "🤍"}
-    </div>
+  <div className={`text-xl transition-all duration-300 transform hover:scale-125 ${active ? "drop-shadow-[0_0_10px_rgba(239,68,68,0.7)]" : "opacity-30 grayscale hover:grayscale-0 hover:opacity-100"}`}>
+    {active ? "💖" : "🤍"}
+  </div>
 );
 
 const AddIcon = ({ active }) => (
-    <div className={`text-2xl transition-all duration-300 transform hover:rotate-12 hover:scale-125 ${active ? "drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" : "opacity-30 grayscale hover:grayscale-0 hover:opacity-100"}`}>
-        {active ? "🚀" : "➕"}
-    </div>
+  <div className={`text-xl transition-all duration-300 transform hover:rotate-12 hover:scale-125 ${active ? "drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" : "opacity-30 grayscale hover:grayscale-0 hover:opacity-100"}`}>
+    {active ? "🚀" : "➕"}
+  </div>
 );
+
 export default function Home() {
   const location = useLocation();
   const { topic, tags_leetcode, tags_codeforces } = location.state || {};
@@ -64,10 +62,10 @@ export default function Home() {
             leetcode_tags: tags_leetcode,
             codeforces_tags: tags_codeforces
           }
-           res = await problemsApi.checkbox_problems(body);
+          res = await problemsApi.checkbox_problems(body);
         }
         else{
-           res = await problemsApi.problem(topic);
+          res = await problemsApi.problem(topic);
         }
 
         const leetcode = res.data.problems.map(p => ({
@@ -103,27 +101,27 @@ export default function Home() {
     return str.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-");
   }
 
-const handleAction = async (e, p, category) => {
-  e.preventDefault();
-  e.stopPropagation();
+  const handleAction = async (e, p, category) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-  try {
-    await addItem(
-      {
-        title: p.title,
-        url: p.url,
-        platform: p.platform,
-        paid_only: p.paid_only,
-        done: category === "attempted",
-      },
-      category
-    );
+    try {
+      await addItem(
+        {
+          title: p.title,
+          url: p.url,
+          platform: p.platform,
+          paid_only: p.paid_only,
+          done: category === "attempted",
+        },
+        category
+      );
 
-    await fetchWorkspace(); // refresh workspace state
-  } catch (err) {
-    console.error("Failed to add item", err);
-  }
-};
+      await fetchWorkspace(); // refresh workspace state
+    } catch (err) {
+      console.error("Failed to add item", err);
+    }
+  };
 
   const isMarked = (url, list) => list?.some(item => item.url === url);
 
@@ -143,79 +141,84 @@ const handleAction = async (e, p, category) => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[var(--primary)] flex justify-center py-10 pb-24">
-      <div className="w-[70vw] bg-[var(--secondary)] rounded-xl shadow-lg p-6 relative">
-        <h1 className="text-3xl font-bold mb-2 text-center text-[var(--card)]">
-          Problems for "{topic} {tags_leetcode} {tags_codeforces}"
+    <div className="w-full min-h-[85vh] flex justify-center py-10 pb-24 px-4 font-sans relative overflow-hidden">
+      {/* Background Radial Glow */}
+      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[radial-gradient(circle,_rgba(197,255,0,0.04)_0%,_transparent_70%)] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-[radial-gradient(circle,_rgba(0,191,255,0.02)_0%,_transparent_70%)] pointer-events-none"></div>
+
+      <div className="cyber-panel w-full max-w-5xl p-8 relative">
+        <h1 className="text-3xl font-extrabold mb-6 text-center text-[#c5ff00] uppercase tracking-wider border-b border-[#0f2b48] pb-4">
+          Problems for "{topic || tags_leetcode?.join(', ') || tags_codeforces?.join(', ')}"
         </h1>
 
         {loading ? (
-          <p className="text-center mt-6 text-[var(--card)] text-sm">Loading problems...</p>
+          <p className="text-center mt-6 text-[#c5ff00] text-sm animate-pulse">Loading problems...</p>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-4">
               {problems.map((p, index) => (
-                <div key={index} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center group hover:shadow-md transition-all duration-300">
+                <div key={index} className="bg-[#061424] border border-[#0f2b48] hover:border-[#c5ff00]/50 p-4 rounded-[4px] flex justify-between items-center group transition-all duration-300 shadow-md hover:shadow-[0_0_15px_rgba(197,255,0,0.1)]">
                   {/* Left Side: Question Info */}
                   <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex-1">
-                    <h2 className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300">
-                        {p.title}
+                    <h2 className="font-bold text-white group-hover:text-[#c5ff00] transition-colors duration-300">
+                      {p.title}
                     </h2>
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-50 px-2 py-0.5 rounded">
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-[#587b9a] bg-[#0c2238] px-2 py-0.5 rounded-[2px] border border-[#0f2b48]">
                         {p.platform}
-                    </span>
-                    <span className={`text-[10px] font-bold uppercase ${
-                        p.difficulty?.toLowerCase() === 'easy' ? 'text-green-500' :
-                        p.difficulty?.toLowerCase() === 'medium' ? 'text-yellow-600' :
-                        'text-red-500'
-                    }`}>
+                      </span>
+                      <span className={`text-[9px] font-bold uppercase ${
+                        p.difficulty?.toLowerCase() === 'easy' ? 'text-green-400' :
+                        p.difficulty?.toLowerCase() === 'medium' ? 'text-yellow-400' :
+                        'text-red-400'
+                      }`}>
                         - {p.difficulty}
-                    </span>
-                    {p.paid_only && (
-                        <span className="text-[10px] text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded animate-pulse">
-                            PREMIUM
+                      </span>
+                      {p.paid_only && (
+                        <span className="text-[9px] text-red-400 font-extrabold bg-red-950/40 border border-red-500/20 px-2 py-0.5 rounded-[2px] animate-pulse">
+                          PREMIUM
                         </span>
-                    )}
+                      )}
+                    </div>
+                  </a>
+                  
+                  {/* Right Side: Action Buttons */}
+                  <div className="flex items-center gap-2 ml-4">
+                    <button 
+                      onClick={(e) => handleAction(e, p, 'attempted')} 
+                      className="focus:outline-none p-1.5 hover:bg-[#0c2238] rounded-full transition-all duration-200"
+                      title="Mark as Attempted"
+                    >
+                      <AttemptedIcon active={isMarked(p.url, attempted)} />
+                    </button>
+                    <button 
+                      onClick={(e) => handleAction(e, p, 'marked')} 
+                      className="focus:outline-none p-1.5 hover:bg-[#0c2238] rounded-full transition-all duration-200"
+                      title="Add to Favourites"
+                    >
+                      <FavouriteIcon active={isMarked(p.url, marked)} />
+                    </button>
+                    <button 
+                      onClick={(e) => handleAction(e, p, 'important')} 
+                      className="focus:outline-none p-1.5 hover:bg-[#0c2238] rounded-full transition-all duration-200"
+                      title="Add to Workspace"
+                    >
+                      <AddIcon active={isMarked(p.url, important)} />
+                    </button>
+                  </div>
                 </div>
-            </a>
-            
-            {/* Right Side: Attractive Emoji Action Buttons */}
-            <div className="flex items-center gap-4 ml-4">
-                <button 
-                    onClick={(e) => handleAction(e, p, 'attempted')} 
-                    className="focus:outline-none p-1 transform active:scale-90 transition-transform"
-                    title="Mark as Attempted"
-                >
-                    <AttemptedIcon active={isMarked(p.url, attempted)} />
-                </button>
-                <button 
-                    onClick={(e) => handleAction(e, p, 'marked')} 
-                    className="focus:outline-none p-1 transform active:scale-90 transition-transform"
-                    title="Add to Favourites"
-                >
-                    <FavouriteIcon active={isMarked(p.url, marked)} />
-                </button>
-                <button 
-                    onClick={(e) => handleAction(e, p, 'important')} 
-                    className="focus:outline-none p-1 transform active:scale-90 transition-transform"
-                    title="Add to Workspace"
-                >
-                    <AddIcon active={isMarked(p.url, important)} />
-                </button>
-            </div>
-        </div>
-      ))}
+              ))}
             </div>
             
+            {/* Save Button */}
             <div className="flex justify-center mt-8">
-                <button 
-                    onClick={handleSaveSheet}
-                    disabled={saving}
-                    className="bg-[#1f883d] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-[#1a7f37] transition disabled:opacity-50"
-                >
-                    {saving ? "Saving..." : "Save This Sheet"}
-                </button>
+              <button 
+                onClick={handleSaveSheet}
+                disabled={saving}
+                className="bg-[#c5ff00] hover:bg-[#aee600] text-[#020a13] px-10 py-3 rounded-[3px] font-black uppercase tracking-wider text-xs transition-all duration-300 shadow-[0_0_15px_rgba(197,255,0,0.25)] hover:shadow-[0_0_25px_rgba(197,255,0,0.45)] disabled:opacity-50 cursor-pointer"
+              >
+                {saving ? "Saving..." : "Save This Sheet"}
+              </button>
             </div>
           </>
         )}

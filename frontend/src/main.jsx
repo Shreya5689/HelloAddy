@@ -13,6 +13,7 @@ import Workspace from "./components/Workspace.jsx";
 import User_profile from "./components/User_profile.jsx";
 import ForgotPassword from "./components/Forgot_password.jsx";
 import SavedSheetDetails from "./components/SavedSheetDetails.jsx";
+import Editorial from "./components/editorial.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -30,6 +31,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="workspace" element={<Workspace/>}/>
       <Route path="user" element={<User_profile/>}/>
       <Route path="sheet/:id" element={<SavedSheetDetails/>} />
+      <Route path="editorial" element={<Editorial />} /> 
       </Route>
   </Routes>
   </BrowserRouter>

@@ -47,6 +47,7 @@ export default function LevelSelect() {
     },
   ];
 
+// Locate this function (Lines 50-89) in Ranking.jsx:
   const handleContinue = async () => {
     // Prevent continue if no level selected
     if (!level) return;

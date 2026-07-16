@@ -65,13 +65,20 @@ const useTodoStore = create((set, get) => ({
     }
   },
 
-  updateItemValue: async (itemId, newValue) => {
+    updateItemValue: async (itemId, newValue) => {
     try {
-      const res = await wishlistApi.updateItem(itemId, { value: newValue });
+      // 1. Call updateItemById (PUT request) instead of updateItem (PATCH request)
+      const res = await wishlistApi.updateItemById(itemId, { value: newValue });
       const updatedItem = res.data;
 
       const updateList = (prev) => prev.map((i) => (i.id === itemId ? updatedItem : i));
-      set((state) => ({ wishlist: updateList(state.wishlist) }));
+      
+      // 2. Dynamically update either the todos or wishlist list depending on item type
+      if (updatedItem.type === "todo") {
+        set((state) => ({ todos: updateList(state.todos) }));
+      } else {
+        set((state) => ({ wishlist: updateList(state.wishlist) }));
+      }
     } catch (err) {
       console.error("Error updating item:", err);
     }

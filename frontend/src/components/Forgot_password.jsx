@@ -101,7 +101,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 bg-[var(--card)] text-white py-3 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 transition"
+              className="mt-2 bg-[var(--card)] text-[var(--primary)] py-3 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 transition"
             >
               {loading ? "Sending..." : "Send OTP"}
             </button>
