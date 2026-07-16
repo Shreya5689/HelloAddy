@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter,Depends,HTTPException
 from clients.leetcode.client import Query
 from clients.codeforces.client import search_codeforces
@@ -195,6 +196,32 @@ async def problem(
 #         "codeforces-problems": codeforces_problem
 #     }
 
+# Add this endpoint to backend/routes/problems.py
+
+@router.delete("/problem/{problem_id}")
+def delete_problem_from_sheet(
+    problem_id: int, 
+    user_payload: dict = Depends(auth.get_current_user), 
+    db: Session = Depends(get_db)
+):
+    # Get user
+    user = db.query(Users).filter(Users.username == user_payload["sub"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Find the problem
+    problem = db.query(UserProblemSheet).filter(UserProblemSheet.id == problem_id).first()
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+        
+    # Ensure sheet belongs to the logged-in user
+    sheet = db.query(UserSheet).filter(UserSheet.id == problem.sheet_id, UserSheet.user_id == user.id).first()
+    if not sheet:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this sheet")
+        
+    db.delete(problem)
+    db.commit()
     
+    return {"message": "Problem removed successfully"}
 
 

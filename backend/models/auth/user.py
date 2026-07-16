@@ -30,7 +30,7 @@ class UserProfile(Base):
 
 class UserOTP(Base):
     __tablename__ = "user_otp"
-    username = Column(String, ForeignKey("users.username"), primary_key=True)
+    username = Column(Integer, ForeignKey("users.id"), primary_key=True)
     otp = Column(String)
     expires_at = Column(DateTime)   
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -24,26 +24,30 @@ from utils.auth import generate_otp
 
 
 router = APIRouter()
-
 @router.post("/login", status_code=status.HTTP_201_CREATED)
-async def login(response:Response, db: Annotated[Session, Depends(get_db)], create_user_request:CreateUserRequest):
-    hashed_password = auth.hash_password(create_user_request.password)
-
+async def login(response: Response, db: Annotated[Session, Depends(get_db)], create_user_request: CreateUserRequest):
+    # 1. Fetch user by username
     user = get_user(db, create_user_request.username)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    else:
-
-        refresh_token_expires=timedelta(days=auth.REFRESH_TOKEN_EXPIRES_DAYS)
-        access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRES_MINUTES)
-        access_token = auth.create_token(
-            data={"sub":create_user_request.username, "type": "access"}, expires_delta=access_token_expires)
-        
-        refresh_token= auth.create_token(
-            data={"sub":create_user_request.username, "type": "refresh"}, expires_delta=refresh_token_expires)
-        
-        
-        response.set_cookie(
+    
+    # 2. Check if the provided email matches the registered email
+    if user.email != create_user_request.email:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
+    # 3. Check password using bcrypt
+    if not bcrypt.checkpw(create_user_request.password.encode('utf-8'), user.hashed_password.encode('utf-8')):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    refresh_token_expires = timedelta(days=auth.REFRESH_TOKEN_EXPIRES_DAYS)
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRES_MINUTES)
+    
+    access_token = auth.create_token(
+        data={"sub": create_user_request.username, "type": "access"}, expires_delta=access_token_expires)
+    
+    refresh_token = auth.create_token(
+        data={"sub": create_user_request.username, "type": "refresh"}, expires_delta=refresh_token_expires)
+    
+    response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
@@ -51,41 +55,48 @@ async def login(response:Response, db: Annotated[Session, Depends(get_db)], crea
         samesite="none",
         max_age=7 * 24 * 60 * 60,
         path="/"        
-        )
-        profile = get_profile(db, user.username)
-
-        return {
+    )
+    return {
         "message": "Welcome",
         "access_token": access_token
-        }
-    
-
+    }
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
-async def create_user(response:Response, db: Annotated[Session,Depends(get_db)], create_user_request:CreateUserSignupRequest):
-    print(create_user_request)
-    hashed_password = auth.hash_password(create_user_request.password)
+async def create_user(response: Response, db: Annotated[Session, Depends(get_db)], create_user_request: CreateUserSignupRequest):
+    # 1. Check if username already exists
     user = get_user(db, create_user_request.username)
     if user:
-        return {"message":"User already exists"}
-    else:
-        create_signup_user(
-            db=db,
-            email= create_user_request.email,
-            username=create_user_request.username,
-            hashed_password=hashed_password,
-            ranking=create_user_request.ranking
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already exists. Please choose a different username."
         )
-        # print(new_user)
-        refresh_token_expires=timedelta(days=auth.REFRESH_TOKEN_EXPIRES_DAYS)
-        access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRES_MINUTES)
-        access_token = auth.create_token(
-            data={"sub":create_user_request.username, "type": "access"}, expires_delta=access_token_expires)
+    
+    # 2. Check if email already exists
+    user_by_email = get_user_by_email(db, create_user_request.email)
+    if user_by_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An account is already registered with this email."
+        )
         
-        refresh_token= auth.create_token(
-            data={"sub":create_user_request.username, "type": "refresh"}, expires_delta=refresh_token_expires)
-        
-        
-        response.set_cookie(
+    # 3. Create user
+    hashed_password = auth.hash_password(create_user_request.password)
+    create_signup_user(
+        db=db,
+        email=create_user_request.email,
+        username=create_user_request.username,
+        hashed_password=hashed_password,
+        ranking=create_user_request.ranking
+    )
+    
+    refresh_token_expires = timedelta(days=auth.REFRESH_TOKEN_EXPIRES_DAYS)
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRES_MINUTES)
+    access_token = auth.create_token(
+        data={"sub": create_user_request.username, "type": "access"}, expires_delta=access_token_expires)
+    
+    refresh_token = auth.create_token(
+        data={"sub": create_user_request.username, "type": "refresh"}, expires_delta=refresh_token_expires)
+    
+    response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
@@ -93,13 +104,13 @@ async def create_user(response:Response, db: Annotated[Session,Depends(get_db)],
         samesite="none",
         max_age=7 * 24 * 60 * 60,
         path="/"        
-        )
+    )
 
-        return {
+    return {
         "message": "User created successfully",
         "access_token": access_token,
         "refresh_token": refresh_token
-        }
+    }
 
 oauth2_scheme = HTTPBearer()
 @router.get("/billu")
