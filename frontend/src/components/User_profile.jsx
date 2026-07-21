@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from "react";
-import authApi,{ useAuthStore } from "../api_sevices/auth";
+import authApi, { useAuthStore } from "../api_sevices/auth";
 import { useNavigate } from "react-router-dom";
 import saveSheetsApi from "../api_sevices/save_sheets";
 import Default_profile from "../assets/Default_profile.jpg";
 
-
-// Add this helper component at the top of User_profile.jsx
-
+// Helper Image Cropper Modal (Rectangular Crop Viewport)
 const ImageCropperModal = ({ imageSrc, onCancel, onSave }) => {
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const canvasRef = React.useRef(null); // Or useRef(null)
+  const canvasRef = React.useRef(null);
   const [imgObj, setImgObj] = useState(null);
-  
-  // ...
-  // Load image element
+
   React.useEffect(() => {
     if (!imageSrc) return;
     const img = new Image();
@@ -28,7 +24,6 @@ const ImageCropperModal = ({ imageSrc, onCancel, onSave }) => {
     };
   }, [imageSrc]);
 
-  // Draw image on canvas
   React.useEffect(() => {
     if (!imgObj || !canvasRef.current) return;
     const canvas = canvasRef.current;
@@ -37,28 +32,24 @@ const ImageCropperModal = ({ imageSrc, onCancel, onSave }) => {
 
     ctx.clearRect(0, 0, size, size);
 
-    // Calculate dimensions to aspect-fill the viewport
     const ratio = Math.max(size / imgObj.width, size / imgObj.height);
     const drawWidth = imgObj.width * ratio * zoom;
     const drawHeight = imgObj.height * ratio * zoom;
 
-    // Apply translations
     const x = (size - drawWidth) / 2 + offset.x;
     const y = (size - drawHeight) / 2 + offset.y;
 
-    // Draw image
     ctx.drawImage(imgObj, x, y, drawWidth, drawHeight);
 
-    // Apply a circular mask for visual crop guide
+    // Apply rectangular crop mask
     ctx.save();
     ctx.globalCompositeOperation = "destination-in";
     ctx.beginPath();
-    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.rect(0, 0, size, size);
     ctx.fill();
     ctx.restore();
   }, [imgObj, zoom, offset]);
 
-  // Drag and reposition handlers
   const handleMouseDown = (e) => {
     setIsDragging(true);
     setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
@@ -78,57 +69,58 @@ const ImageCropperModal = ({ imageSrc, onCancel, onSave }) => {
 
   const handleCropSave = () => {
     if (!canvasRef.current) return;
-    // Export the adjusted 256x256 cropped image as base64
     const croppedImage = canvasRef.current.toDataURL("image/jpeg", 0.9);
     onSave(croppedImage);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex flex-col items-center justify-center z-[100] p-4 text-black">
-      <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl flex flex-col items-center">
-        <h3 className="text-lg font-bold mb-4">Adjust Profile Photo 📐</h3>
-        
-        {/* Interactive Viewport */}
-        <div 
+    <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center z-[100] p-4 text-white font-sans">
+      <div className="bg-[#121824] border border-[#1E293B] p-6 rounded-2xl w-full max-w-sm shadow-2xl flex flex-col items-center">
+        <h3 className="text-lg font-mono font-bold mb-4 text-[#8BFF00] tracking-wider uppercase">
+          Adjust Profile Photo 📐
+        </h3>
+
+        {/* Rectangular Viewport */}
+        <div
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          className="relative w-64 h-64 border border-gray-200 rounded-full overflow-hidden cursor-move bg-gray-50 flex items-center justify-center select-none"
+          className="relative w-64 h-64 border-2 border-[#8BFF00]/40 rounded-xl overflow-hidden cursor-move bg-[#0B0F17] flex items-center justify-center select-none shadow-[0_0_20px_rgba(139,255,0,0.15)]"
         >
-          <canvas 
-            ref={canvasRef} 
-            width={256} 
-            height={256} 
-            className="w-full h-full rounded-full"
+          <canvas
+            ref={canvasRef}
+            width={256}
+            height={256}
+            className="w-full h-full rounded-xl"
           />
         </div>
 
-        {/* Zoom Control */}
         <div className="w-full mt-6 px-4">
-          <label className="text-xs font-bold text-gray-400 block mb-1">ZOOM</label>
-          <input 
-            type="range" 
-            min="1" 
-            max="3" 
+          <label className="text-xs font-mono font-bold text-gray-400 block mb-1 tracking-widest">
+            ZOOM
+          </label>
+          <input
+            type="range"
+            min="1"
+            max="3"
             step="0.05"
             value={zoom}
             onChange={(e) => setZoom(parseFloat(e.target.value))}
-            className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            className="w-full h-1.5 bg-[#1E293B] rounded-lg appearance-none cursor-pointer accent-[#8BFF00]"
           />
         </div>
 
-        {/* Action Buttons */}
         <div className="flex gap-3 w-full mt-6 justify-end">
-          <button 
+          <button
             onClick={onCancel}
-            className="flex-1 py-2 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition"
+            className="flex-1 py-2 rounded-xl bg-[#1E293B] text-gray-300 font-semibold hover:bg-gray-700 transition text-xs uppercase font-mono"
           >
             Cancel
           </button>
-          <button 
+          <button
             onClick={handleCropSave}
-            className="flex-1 py-2 rounded-xl bg-black text-white font-semibold hover:opacity-95 transition"
+            className="flex-1 py-2 rounded-xl bg-[#8BFF00] text-black font-extrabold hover:bg-[#9eff1a] transition text-xs uppercase font-mono"
           >
             Save Photo
           </button>
@@ -180,7 +172,7 @@ const EditableField = ({
       <div className="w-full mt-1">
         {type === "textarea" ? (
           <textarea
-            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-gray-50"
+            className="w-full p-2 text-sm border border-[#1E293B] rounded-md focus:border-[#8BFF00] focus:ring-1 focus:ring-[#8BFF00] outline-none bg-[#0B0F17] text-white"
             value={tempValue || ""}
             onChange={(e) => setTempValue(e.target.value)}
             rows={label === "about" ? 5 : 3}
@@ -188,7 +180,7 @@ const EditableField = ({
           />
         ) : (
           <input
-            className="w-full p-1.5 text-sm border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-gray-50"
+            className="w-full p-1.5 text-sm border border-[#1E293B] rounded-md focus:border-[#8BFF00] focus:ring-1 focus:ring-[#8BFF00] outline-none bg-[#0B0F17] text-white"
             value={tempValue || ""}
             onChange={(e) => setTempValue(e.target.value)}
             autoFocus
@@ -197,13 +189,13 @@ const EditableField = ({
         <div className="flex gap-2 mt-2">
           <button
             onClick={handleSave}
-            className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-[#1f883d] rounded-md hover:bg-[#1a7f37]"
+            className="flex items-center gap-1 px-3 py-1 text-xs font-mono font-bold text-black bg-[#8BFF00] rounded-md hover:bg-[#9eff1a] transition"
           >
             <CheckIcon /> Save
           </button>
           <button
             onClick={() => setIsEditing(false)}
-            className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
+            className="flex items-center gap-1 px-3 py-1 text-xs font-mono text-gray-300 bg-[#1E293B] rounded-md hover:bg-gray-700 transition"
           >
             <CrossIcon /> Cancel
           </button>
@@ -218,18 +210,18 @@ const EditableField = ({
     >
       <div className="flex-1 pr-6">
         {label === "name" ? (
-          <h1 className="text-2xl font-bold text-[#1F2328]">
+          <h1 className="text-xl font-bold font-mono text-white tracking-wide uppercase">
             {value || "Guest User"}
           </h1>
         ) : (
-          <p className="text-[#1F2328] text-sm leading-relaxed">
+          <p className="text-gray-300 text-sm leading-relaxed font-sans">
             {value || `Add ${label}...`}
           </p>
         )}
       </div>
       <button
         onClick={() => setIsEditing(true)}
-        className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-500 hover:bg-gray-100 rounded-md transition-all"
+        className="opacity-0 group-hover:opacity-100 p-1.5 text-[#8BFF00] hover:bg-[#8BFF00]/10 rounded-md transition-all"
         title={`Edit ${label}`}
       >
         <PencilIcon />
@@ -242,10 +234,12 @@ const UserProfile = () => {
   const { user, fetchUserProfile, loading } = useAuthStore();
   const [sheets, setSheets] = useState([]);
   const navigate = useNavigate();
-    useEffect(() => {
+
+  useEffect(() => {
     fetchUserProfile();
     fetchSheets();
   }, [fetchUserProfile]);
+
   const fetchSheets = async () => {
     try {
       const res = await saveSheetsApi.getSheets();
@@ -254,7 +248,7 @@ const UserProfile = () => {
       console.error("Error fetching sheets", err);
     }
   };
-  // State to hold the temporary selected image source for cropping
+
   const [selectedImage, setSelectedImage] = useState(null);
 
   const handleDeleteSheet = async (sheetId) => {
@@ -262,146 +256,243 @@ const UserProfile = () => {
 
     try {
       await saveSheetsApi.deleteSheet(sheetId);
-      // Refresh the list after deleting
       fetchSheets();
     } catch (err) {
       console.error("Failed to delete sheet", err);
       alert("Failed to delete sheet.");
     }
   };
-    // Put this inside the UserProfile component, right under handleDeleteSheet
-    // 1. Initial File Selection Handler
-    // State to hold the selected image for the cropping modal
-  // 1. Initial File Selection Handler
+
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      setSelectedImage(reader.result); // This opens the cropper modal
+      setSelectedImage(reader.result);
     };
     reader.readAsDataURL(file);
   };
 
-  // 2. Final Saved Crop Handler (no authApi call here)
   const handleSaveCroppedImage = (croppedBase64) => {
-    // Save to localStorage under current username
     localStorage.setItem(`profile_picture_${user.username}`, croppedBase64);
 
-    // Update state to trigger re-render
     useAuthStore.setState((state) => ({
-      user: { ...state.user, profile_picture: croppedBase64 }
+      user: { ...state.user, profile_picture: croppedBase64 },
     }));
 
-    // Close the cropper modal
     setSelectedImage(null);
   };
-  // ✅ CRASH FIX — NO UI CHANGE
+
   if (loading || !user) return null;
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-10 font-sans text-[#1F2328]">
-      <div className="flex flex-col md:flex-row gap-10">
-        <div className="w-full md:w-1/4">
-                              {/* Hoverable profile picture with hidden file input */}
-          <div className="relative group/avatar mb-4 aspect-square overflow-hidden rounded-full border border-gray-200 shadow-sm cursor-pointer">
-            <img
-              src={localStorage.getItem(`profile_picture_${user.username}`) || Default_profile}
-              alt="Avatar"
-              className="w-full h-full object-cover"
-            />
-            {/* Dark overlay showing "Change Photo" on hover */}
-            <div 
-              onClick={() => document.getElementById("avatar-input").click()}
-              className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200"
-            >
-              <span className="text-white text-xs font-semibold bg-black/60 px-3 py-1 rounded-full border border-white/20">
-                Change Photo 📷
-              </span>
-            </div>
-            {/* Hidden Input field */}
-            <input 
-              id="avatar-input"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
-          </div>
-
-          <EditableField label="name" value={user.username} className="mb-1" />
-          <EditableField
-            label="bio"
-            value={user.bio}
-            type="textarea"
-            className="mb-6"
-          />
-
-          <div className="pt-4 border-t border-gray-200 space-y-4">
-            <EditableField value={user.ranking} />
-            <EditableField value={user.email} />
+    <div className="bg-[#0B0F17] text-white min-h-screen p-4 md:p-8 font-sans selection:bg-[#8BFF00]/30 selection:text-[#8BFF00]">
+      {/* Top HUD Banner */}
+      <div className="max-w-6xl mx-auto mb-8 bg-[#121824] border border-[#1E293B] rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="w-2.5 h-8 bg-[#8BFF00] rounded-full shadow-[0_0_10px_#8BFF00]" />
+          <div>
+            <h1 className="text-xl font-extrabold font-mono tracking-wider text-white uppercase flex items-center gap-2">
+              QUEST LOG: ACTIVE OPERATIONS
+            </h1>
+            <p className="text-xs font-mono text-gray-400">
+              System Status:{" "}
+              <span className="text-[#8BFF00] font-bold">Optimized</span> | Mana
+              Flux: <span className="text-[#8BFF00]">94.2%</span>
+            </p>
           </div>
         </div>
 
-        <div className="w-full md:w-3/4">
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+        <div className="flex gap-4 font-mono text-xs">
+          <div className="bg-[#0B0F17] border border-[#1E293B] px-3 py-1.5 rounded-lg">
+            <span className="text-gray-400 block text-[10px]">TOTAL SHEETS</span>
+            <span className="text-[#8BFF00] font-bold text-sm">
+              {sheets.length}
+            </span>
+          </div>
+          <div className="bg-[#0B0F17] border border-[#1E293B] px-3 py-1.5 rounded-lg">
+            <span className="text-gray-400 block text-[10px]">GOLD RESERVES</span>
+            <span className="text-[#8BFF00] font-bold text-sm">45,200G</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
+        {/* Left Sidebar (30% Width - User HUD Panel) */}
+        <div className="w-full lg:w-[30%] space-y-6">
+          <div className="bg-[#121824] border border-[#1E293B] rounded-xl p-5 shadow-xl relative overflow-hidden">
+            {/* Top Status Indicator */}
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[10px] font-mono font-bold bg-[#8BFF00]/10 text-[#8BFF00] border border-[#8BFF00]/30 px-2 py-0.5 rounded uppercase tracking-widest">
+                ACTIVE USER
+              </span>
+              <span className="w-2 h-2 rounded-full bg-[#8BFF00] animate-pulse shadow-[0_0_8px_#8BFF00]" />
+            </div>
+
+            {/* Profile Avatar Frame (Rectangular) */}
+            <div className="relative group/avatar mb-5 aspect-square overflow-hidden rounded-xl border-2 border-[#8BFF00]/40 shadow-[0_0_20px_rgba(139,255,0,0.15)] cursor-pointer">
+              <img
+                src={
+                  localStorage.getItem(`profile_picture_${user.username}`) ||
+                  Default_profile
+                }
+                alt="Avatar"
+                className="w-full h-full object-cover rounded-xl"
+              />
+              <div
+                onClick={() => document.getElementById("avatar-input").click()}
+                className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 rounded-xl"
+              >
+                <span className="text-white text-xs font-mono font-semibold bg-[#0B0F17] border border-[#8BFF00] text-[#8BFF00] px-3 py-1.5 rounded-lg shadow-lg">
+                  Change Photo 📷
+                </span>
+              </div>
+              <input
+                id="avatar-input"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </div>
+
+            <EditableField label="name" value={user.username} className="mb-2" />
+            <EditableField
+              label="bio"
+              value={user.bio}
+              type="textarea"
+              className="mb-4"
+            />
+
+            <div className="pt-4 border-t border-[#1E293B] space-y-3 font-mono text-xs">
+              <div className="text-gray-400">
+                <span className="text-[10px] text-gray-500 uppercase block">
+                  RANKING
+                </span>
+                <EditableField value={user.ranking} />
+              </div>
+              <div className="text-gray-400">
+                <span className="text-[10px] text-gray-500 uppercase block">
+                  COMMUNICATION EMAIL
+                </span>
+                <EditableField value={user.email} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Main Panel (70% Width - Custom Sheets Tile Grid) */}
+        <div className="w-full lg:w-[70%] space-y-6">
+          {/* User About / Dossier Section */}
+          <div className="bg-[#121824] border border-[#1E293B] rounded-xl p-5 shadow-lg">
+            <h3 className="text-xs font-mono font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+              <span className="w-1.5 h-3 bg-[#8BFF00] rounded-xs" />
+              SOVEREIGN DOSSIER / ABOUT
+            </h3>
             <EditableField label="about" value={user.about} type="textarea" />
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          {/* Quest Tile Grid Container */}
+          <div className="bg-[#121824] border border-[#1E293B] rounded-xl p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#1E293B]">
+              <h2 className="text-lg font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <span className="text-[#8BFF00]">⚡</span> SAVED QUEST SHEETS
+              </h2>
+              <span className="text-xs font-mono text-gray-400 bg-[#0B0F17] border border-[#1E293B] px-2.5 py-1 rounded-md">
+                {sheets.length} ITEMS DETECTED
+              </span>
+            </div>
+
             {sheets.length === 0 ? (
-              <p className="text-sm text-gray-500">No saved sheets yet.</p>
+              <div className="py-12 text-center border-2 border-dashed border-[#1E293B] rounded-xl bg-[#0B0F17]">
+                <p className="text-sm font-mono text-gray-400">
+                  NO SAVED QUEST SHEETS YET.
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Create and save custom sheets to populate your operational grid.
+                </p>
+              </div>
             ) : (
-              <ul className="space-y-2">
+              /* 2-Column Responsive Quest Card Tiles Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {sheets.map((sheet) => (
-                  <li
+                  <div
                     key={sheet.id}
-                    onClick={() => navigate(`/sheet/${sheet.id}`)}
-                    className="p-3 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50 transition flex justify-between items-center group/item"
+                    className="relative bg-[#0B0F17] border border-[#1E293B] hover:border-[#8BFF00]/60 rounded-xl p-5 shadow-lg transition-all duration-300 group hover:shadow-[0_0_20px_rgba(139,255,0,0.15)] flex flex-col justify-between"
                   >
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-gray-700">
+                    <div>
+                      {/* Tile Header - Delete Action Only (Rank Removed) */}
+                      <div className="flex justify-end items-center mb-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSheet(sheet.id);
+                          }}
+                          className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-950/40 rounded-lg transition-all"
+                          title="Delete Sheet"
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Sheet Name */}
+                      <h3 className="text-base font-bold font-mono text-white group-hover:text-[#8BFF00] transition-colors mb-3 line-clamp-1 uppercase tracking-wide">
                         {sheet.name}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {new Date(sheet.created_at).toLocaleDateString()}
-                      </span>
+                      </h3>
+
+                      {/* Quest Meta Stats Box */}
+                      <div className="grid grid-cols-2 gap-2 bg-[#121824] p-2.5 rounded-lg border border-[#1E293B] text-[11px] font-mono mb-4">
+                        <div>
+                          <span className="text-gray-500 text-[9px] uppercase block">
+                            DATE CREATED
+                          </span>
+                          <span className="text-gray-300">
+                            {new Date(sheet.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 text-[9px] uppercase block">
+                            STATUS
+                          </span>
+                          <span className="text-[#8BFF00] font-bold">
+                            READY
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
+                    {/* Action Button: OPEN SHEET */}
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevents navigating to the sheet details
-                        handleDeleteSheet(sheet.id);
-                      }}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all opacity-0 group-hover/item:opacity-100"
-                      title="Delete Sheet"
+                      onClick={() => navigate(`/sheet/${sheet.id}`)}
+                      className="w-full py-2.5 px-4 bg-[#8BFF00] hover:bg-[#9eff1a] text-black font-extrabold font-mono text-xs uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 transition-all shadow-[0_0_12px_rgba(139,255,0,0.25)] hover:shadow-[0_0_20px_rgba(139,255,0,0.4)] cursor-pointer"
                     >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M3 6h18"></path>
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                      </svg>
+                      OPEN QUEST SHEET <span className="text-sm">➔</span>
                     </button>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         </div>
       </div>
-      {/* Render the Cropper Modal when an image is selected */}
+
+      {/* Cropper Modal */}
       {selectedImage && (
         <ImageCropperModal
           imageSrc={selectedImage}

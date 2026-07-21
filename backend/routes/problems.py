@@ -1,8 +1,10 @@
 
 from fastapi import APIRouter,Depends,HTTPException
+from pydantic import BaseModel
 from clients.leetcode.client import Query
 from clients.codeforces.client import search_codeforces
 from utils import auth
+from utils.editorial import generate_ai_editorial
 from utils.search import get_tags
 from schemas.problems import SaveSheetRequest,CheckboxRequest
 from sqlalchemy.orm import Session
@@ -224,4 +226,22 @@ def delete_problem_from_sheet(
     
     return {"message": "Problem removed successfully"}
 
+class EditorialRequest(BaseModel):
+    title: str
+    platform: str
+    difficulty: str
 
+@router.post("/generate_editorial")
+def get_editorial(
+    payload: EditorialRequest,
+    user_payload: dict = Depends(auth.get_current_user)
+):
+    try:
+        result = generate_ai_editorial(
+            problem_title=payload.title,
+            platform=payload.platform,
+            difficulty=payload.difficulty
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
