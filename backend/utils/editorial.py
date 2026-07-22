@@ -82,10 +82,15 @@ def generate_ai_editorial(problem_title: str, platform: str, difficulty: str):
     {transcripts_text}
     
     TASK:
-    Based on these video transcripts and your algorithmic expertise, write a comprehensive, beautifully structured solution editorial.
+    Based on these video transcripts and your algorithmic expertise, write a comprehensive, beautifully structured solution editorial along with 3 progressive hints.
     
     Return a valid JSON object with the following schema:
     {{
+      "hints": [
+        "Hint 1: A subtle nudge pointing out key observations without giving away the main algorithm.",
+        "Hint 2: A clearer hint about suitable data structures or algorithmic patterns.",
+        "Hint 3: A detailed hint summarizing the key breakthrough step needed to solve the problem."
+      ],
       "intuition": "Detailed intuition and breakdown of the key core idea/pattern behind solving this problem.",
       "approach": "Clear step-by-step approach explaining the algorithm.",
       "time_complexity": "e.g. O(N log N)",
