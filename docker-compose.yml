@@ -46,7 +46,7 @@ services:
 
   # Database Service (PostgreSQL)
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: postgres_db
     restart: always
     # Note: No public host ports published. Accessible only internally by backend
