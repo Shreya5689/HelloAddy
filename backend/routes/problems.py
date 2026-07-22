@@ -156,6 +156,26 @@ async def checkbox_problem(
         "codeforces-problems": cf_final
     }
 
+class EditorialRequest(BaseModel):
+    title: str
+    platform: str
+    difficulty: str
+
+@router.post("/generate_editorial")
+def get_editorial(
+    payload: EditorialRequest,
+    user_payload: dict = Depends(auth.get_current_user)
+):
+    try:
+        result = generate_ai_editorial(
+            problem_title=payload.title,
+            platform=payload.platform,
+            difficulty=payload.difficulty
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/{topic}")
 async def problem(
     topic: str, 
@@ -226,22 +246,4 @@ def delete_problem_from_sheet(
     
     return {"message": "Problem removed successfully"}
 
-class EditorialRequest(BaseModel):
-    title: str
-    platform: str
-    difficulty: str
 
-@router.post("/generate_editorial")
-def get_editorial(
-    payload: EditorialRequest,
-    user_payload: dict = Depends(auth.get_current_user)
-):
-    try:
-        result = generate_ai_editorial(
-            problem_title=payload.title,
-            platform=payload.platform,
-            difficulty=payload.difficulty
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
