@@ -181,11 +181,6 @@ export default function Problems() {
               {/* LeetCode */}
               <div>
                 <div className="flex items-center gap-2 mb-4 border-b border-[#0f2b48] pb-1.5">
-                  <div className="w-4 h-4 rounded-[3px] border border-[#c5ff00] bg-[#c5ff00]/10 text-[#c5ff00] flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  </div>
                   <span className="text-[11px] font-black tracking-wider text-[#c5ff00] uppercase">
                     LEETCODE TAGS
                   </span>
@@ -213,7 +208,7 @@ export default function Problems() {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => toggleTopic(t)}
-                          className="hidden"
+                          style={{ display: "none" }}
                         />
                         <span className={`${isChecked ? 'text-[#c5ff00] font-semibold' : ''}`}>
                           {t}
@@ -226,11 +221,6 @@ export default function Problems() {
               {/* Codeforces */}
               <div>
                 <div className="flex items-center gap-2 mb-4 border-b border-[#0f2b48] pb-1.5">
-                  <div className="w-4 h-4 rounded-[3px] border border-[#c5ff00] bg-[#c5ff00]/10 text-[#c5ff00] flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  </div>
                   <span className="text-[11px] font-black tracking-wider text-[#c5ff00] uppercase">
                     CODEFORCES TAGS
                   </span>
@@ -258,7 +248,7 @@ export default function Problems() {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => toggleTopic_codeforces(t)}
-                          className="hidden"
+                          style={{ display: "none" }}
                         />
                         <span className={`${isChecked ? 'text-[#c5ff00] font-semibold' : ''}`}>
                           {t}
