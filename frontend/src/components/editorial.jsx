@@ -12,6 +12,9 @@ export default function Editorial() {
   const [activeLang, setActiveLang] = useState("python");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Track revealed hints state: [false, false, false]
+  const [revealedHints, setRevealedHints] = useState([false, false, false]);
 
   // YouTube search query link
   const youtubeSearchUrl = problem ? `https://www.youtube.com/results?search_query=${encodeURIComponent(
@@ -34,7 +37,7 @@ export default function Editorial() {
         setEditorialData(response.data);
       } catch (err) {
         console.error(err);
-        setError("Could not generate AI Editorial. Showing video tutorial below.");
+        setError("Could not generate AI Editorial. You can still search YouTube tutorial walkthroughs below.");
       } finally {
         setLoading(false);
       }
@@ -59,6 +62,7 @@ export default function Editorial() {
 
   const editorial = editorialData?.editorial;
   const videos = editorialData?.videos || [];
+  const hints = editorial?.hints || [];
 
   const copyToClipboard = (text) => {
     if (!text) return;
@@ -73,6 +77,14 @@ export default function Editorial() {
     if (activeLang === "cpp") return editorial.code_cpp || "";
     if (activeLang === "java") return editorial.code_java || "";
     return "";
+  };
+
+  const toggleHint = (index) => {
+    setRevealedHints((prev) => {
+      const updated = [...prev];
+      updated[index] = !updated[index];
+      return updated;
+    });
   };
 
   return (
@@ -93,13 +105,13 @@ export default function Editorial() {
           onClick={() => navigate(-1)} 
           className="text-xs uppercase tracking-widest text-[#587b9a] hover:text-[#c5ff00] transition-colors mb-6 flex items-center gap-2"
         >
-          ← Return to Saved Sheet
+          ← Return to Sheet
         </button>
 
         {/* Header */}
         <div className="border-b border-[#0f2b48] pb-6 mb-8">
           <span className="text-[10px] tracking-[0.3em] font-extrabold text-[#c5ff00] uppercase block mb-2">
-            SOLUTION & EDITORIAL // {problem.platform}
+            AI EDITORIAL & HINTS // {problem.platform}
           </span>
           <h1 className="text-3xl font-black">{problem.title || problem.name}</h1>
           <div className="flex gap-4 mt-3">
@@ -116,7 +128,7 @@ export default function Editorial() {
         </div>
 
         <div className="space-y-8">
-          {/* Rectangular YouTube Video Walkthrough Player Card */}
+          {/* YouTube Video Walkthrough Player Card */}
           <section>
             <h3 className="text-lg font-bold text-[#c5ff00] mb-4">Video Tutorial Walkthrough</h3>
             <a 
@@ -176,8 +188,8 @@ export default function Editorial() {
           {loading && (
             <div className="py-12 bg-[#051524] border border-[#0f2b48] rounded-xl flex flex-col items-center justify-center space-y-4">
               <div className="w-10 h-10 border-4 border-[#c5ff00] border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-xs font-mono text-[#587b9a] animate-pulse">
-                Fetching top 3 YouTube video transcripts & generating solution via Gemini AI...
+              <p className="text-xs font-mono text-[#587b9a] animate-pulse text-center px-4">
+                Generating 3 progressive hints & AI solution editorial via Gemini AI...
               </p>
             </div>
           )}
@@ -189,9 +201,68 @@ export default function Editorial() {
             </div>
           )}
 
+          {/* 💡 Progressive Solution Hints (Below Video) */}
+          {!loading && hints.length > 0 && (
+            <section className="pt-2">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-[#c5ff00] flex items-center gap-2">
+                  <span>💡</span> Progressive Solution Hints (3 Hints)
+                </h3>
+                <span className="text-xs text-[#587b9a] font-mono">Click to reveal hints step-by-step</span>
+              </div>
+
+              <div className="space-y-3">
+                {hints.map((hintText, index) => {
+                  const isRevealed = revealedHints[index];
+                  return (
+                    <div 
+                      key={index} 
+                      className={`border rounded-xl transition-all duration-300 overflow-hidden ${
+                        isRevealed 
+                          ? "bg-[#051a2e] border-[#c5ff00]/50 shadow-[0_0_15px_rgba(197,255,0,0.08)]" 
+                          : "bg-[#051524] border-[#0f2b48] hover:border-[#1e4975]"
+                      }`}
+                    >
+                      <button
+                        onClick={() => toggleHint(index)}
+                        className="w-full p-4 flex items-center justify-between text-left transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className={`w-7 h-7 rounded-full text-xs font-bold font-mono flex items-center justify-center ${
+                            isRevealed 
+                              ? "bg-[#c5ff00] text-black" 
+                              : "bg-[#0f2b48] text-gray-400"
+                          }`}>
+                            0{index + 1}
+                          </span>
+                          <span className="text-sm font-bold text-gray-200">
+                            Hint {index + 1}: {index === 0 ? "Initial Pattern & Thinking" : index === 1 ? "Core Algorithm & Data Structure" : "Detailed Step-by-Step Logic"}
+                          </span>
+                        </div>
+                        <span className={`text-xs font-mono px-3 py-1 rounded-full transition-all ${
+                          isRevealed 
+                            ? "bg-[#c5ff00]/20 text-[#c5ff00] border border-[#c5ff00]/40" 
+                            : "bg-[#0f2b48] text-gray-400 hover:text-white"
+                        }`}>
+                          {isRevealed ? "Hide Hint ▲" : "Reveal Hint ▼"}
+                        </span>
+                      </button>
+
+                      {isRevealed && (
+                        <div className="px-5 pb-5 pt-1 text-sm text-[#a4b8c9] border-t border-[#0f2b48]/60 leading-relaxed bg-[#020d18]/60">
+                          {hintText}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
           {/* AI Generated Solution Editorial */}
           {!loading && editorial && (
-            <div className="space-y-8 pt-4 border-t border-[#0f2b48]">
+            <div className="space-y-8 pt-6 border-t border-[#0f2b48]">
               {/* Intuition */}
               <section>
                 <h3 className="text-lg font-bold text-[#c5ff00] mb-3">Intuition & Pattern</h3>
@@ -268,44 +339,15 @@ export default function Editorial() {
                   </div>
                 </section>
               )}
-
-              {/* Top 3 Transcribed YouTube Videos */}
-              {videos.length > 0 && (
-                <section className="pt-6 border-t border-[#0f2b48]">
-                  <h3 className="text-lg font-bold text-[#c5ff00] mb-4">
-                    Top 3 Analyzed YouTube Solution Videos
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {videos.map((vid, idx) => (
-                      <a
-                        key={idx}
-                        href={vid.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-[#051524] border border-[#0f2b48] rounded-lg overflow-hidden hover:border-[#c5ff00]/50 transition-all p-3 flex flex-col group"
-                      >
-                        <img 
-                          src={vid.thumbnail} 
-                          alt={vid.title} 
-                          className="w-full h-28 object-cover rounded mb-2 group-hover:opacity-90 transition-opacity" 
-                        />
-                        <h4 className="text-xs font-bold text-white group-hover:text-[#c5ff00] line-clamp-2 mb-1">
-                          {vid.title}
-                        </h4>
-                        <p className="text-[10px] text-gray-400 font-mono mt-auto">{vid.channel}</p>
-                      </a>
-                    ))}
-                  </div>
-                </section>
-              )}
             </div>
           )}
+
         </div>
 
         {/* Footer */}
         <section className="pt-6 border-t border-[#0f2b48]/50 flex justify-between items-center mt-8">
           <span className="text-[10px] font-mono text-[#587b9a]">
-            SHADOW SOVEREIGN // GEMINI EDITORIAL MODULE V1.0
+            STUDYMATE // GEMINI EDITORIAL & HINTS MODULE
           </span>
           <a 
             href={problem.url} 
