@@ -22,7 +22,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            cd /var/www/HelloAddy
+            cd /var/www/StudyMate || cd /var/www/HelloAddy
             git fetch origin main
             git reset --hard origin/main
             docker compose build

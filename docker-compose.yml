@@ -53,7 +53,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-helloaddy_db}
+      POSTGRES_DB: ${POSTGRES_DB:-studymate_db}
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
