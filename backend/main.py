@@ -12,7 +12,14 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "https://studymate.shreya-projects.site",
+        "http://studymate.shreya-projects.site",
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost",
+    ],
+    allow_origin_regex=r"https://.*\.shreya-projects\.site",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,11 +30,7 @@ app.include_router(problems.router, prefix="/problems", tags=["problems"])
 app.include_router(wishlist.router, prefix="/wishlist", tags=["wishlist"])
 app.include_router(workspace.router, prefix="/workspace", tags=["workspace"])
 
-# def add(a: int, b: int) -> int:
-#     return a+b
-
 @app.get("/")
 def main():
     print("Assalamuailikum Lyari")
-    add (3,4)
-    return "Assalailikum, lyari"
+    return "Assalamuailikum, lyari"
