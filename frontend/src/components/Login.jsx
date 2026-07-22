@@ -72,7 +72,7 @@ export default function Login() {
           className="text-3xl font-black text-center text-[var(--card)] tracking-widest font-mono uppercase mb-1"
           style={{ textShadow: '0 0 10px rgba(197, 255, 0, 0.5)' }}
         >
-          GATE ACCESS
+          LOGIN
         </h1>
         <span className="text-[9px] font-mono tracking-widest text-[var(--card)]/60 block text-center mb-8">
           PROTOCOL: LOGIN_V4.2
@@ -109,17 +109,17 @@ export default function Login() {
 
           {/* Submit Button */}
           <button className="w-full bg-[var(--card)] hover:opacity-90 text-[var(--primary)] font-mono font-black py-3.5 rounded-[2px] uppercase tracking-[0.2em] text-xs transition-all duration-300 shadow-[0_0_15px_rgba(197,255,0,0.25)] cursor-pointer mt-6 border-none">
-            INITIATE UPLINK
+            Submit
           </button>
         </form>
 
         {/* Footer Links */}
         <div className="mt-8 text-center space-y-3 font-mono text-[9px] tracking-widest uppercase">
           <Link to="/forgot-password" title="reset-password" id="forgot-password-link" className="text-[var(--text-secondary)] hover:text-[var(--card)] transition-colors block">
-            LOST CIPHER KEY?
+            FORGOT PASSWORD?
           </Link>
           <p className="text-[var(--text-secondary)]">
-            NEW OPERATIVE?{" "}
+            NEW USER?{" "}
             <Link to="/signup" className="text-[var(--card)] font-bold hover:underline">
               REGISTER
             </Link>

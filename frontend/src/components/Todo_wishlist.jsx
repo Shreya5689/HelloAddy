@@ -142,7 +142,7 @@ export default function TodoWishlist() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="cyber-panel p-6 w-[90%] max-w-md shadow-2xl">
             <h3 className="text-base font-black font-mono uppercase tracking-wider text-[#c5ff00] mb-4">
-              {inputType === "link" ? "CONNECT_NEW_LINK" : "APPEND_TASK_MEMO"}
+              {inputType === "link" ? "ADD NEW LINK" : "ADD NEW NOTE"}
             </h3>
             <input 
               type="text" 
@@ -175,7 +175,7 @@ export default function TodoWishlist() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="cyber-panel p-6 w-[90%] max-w-md shadow-2xl">
             <h3 className="text-base font-black font-mono uppercase tracking-wider text-[#c5ff00] mb-4">
-              REWRITE_QUEUE_PAYLOAD
+              UPDATE ITEM
             </h3>
 
             <input

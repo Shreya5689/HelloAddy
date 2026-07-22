@@ -296,11 +296,7 @@ const UserProfile = () => {
             <h1 className="text-xl font-extrabold font-mono tracking-wider text-white uppercase flex items-center gap-2">
               QUEST LOG: ACTIVE OPERATIONS
             </h1>
-            <p className="text-xs font-mono text-gray-400">
-              System Status:{" "}
-              <span className="text-[#8BFF00] font-bold">Optimized</span> | Mana
-              Flux: <span className="text-[#8BFF00]">94.2%</span>
-            </p>
+           
           </div>
         </div>
 
@@ -311,10 +307,7 @@ const UserProfile = () => {
               {sheets.length}
             </span>
           </div>
-          <div className="bg-[#0B0F17] border border-[#1E293B] px-3 py-1.5 rounded-lg">
-            <span className="text-gray-400 block text-[10px]">GOLD RESERVES</span>
-            <span className="text-[#8BFF00] font-bold text-sm">45,200G</span>
-          </div>
+          
         </div>
       </div>
 

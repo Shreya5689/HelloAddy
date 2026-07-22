@@ -63,9 +63,7 @@ export default function Signup() {
         >
           SIGN UP
         </h1>
-        <span className="text-[9px] font-mono tracking-widest text-[var(--card)]/60 block text-center mb-8">
-          PROTOCOL: NEW_ENTITY_ALPHA
-        </span>
+        
         {error && <p className="text-red-500 font-mono text-xs text-center mb-4">{error}</p>}
         {success && <p className="text-[var(--card)] font-mono text-xs text-center mb-4">{success}</p>}
         <form className="space-y-4" onSubmit={handleSignup}>
@@ -94,7 +92,7 @@ export default function Signup() {
           />
           {/* Submit Button */}
           <button className="w-full bg-[var(--card)] hover:opacity-90 text-[var(--primary)] font-mono font-black py-3.5 rounded-[2px] uppercase tracking-[0.2em] text-xs transition-all duration-300 shadow-[0_0_15px_rgba(197,255,0,0.25)] cursor-pointer mt-6 border-none">
-            EXECUTE ENROLLMENT
+            Submit
           </button>
         </form>
         {/* Footer Links */}
@@ -102,7 +100,7 @@ export default function Signup() {
           <p className="text-[var(--text-secondary)]">
             ESTABLISHED ENTITY?{" "}
             <Link to="/login" className="text-[var(--card)] font-bold hover:underline">
-              RETURN TO GATE
+              RETURN TO LOGIN
             </Link>
           </p>
         </div>
