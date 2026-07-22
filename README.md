@@ -161,6 +161,39 @@ Now, any push to `main` will automatically build and deploy the updated applicat
 
 ---
 
+## 🔍 Operations, Logging & Debugging Cheat-Sheet
+
+### 1. Real-Time Container Logs
+```bash
+# Stream live logs for all running microservices
+cd /var/www/StudyMate
+sudo docker compose logs -f
+
+# Stream specific container logs:
+sudo docker compose logs -f backend   # FastAPI Backend
+sudo docker compose logs -f nginx     # Nginx Reverse Proxy
+sudo docker compose logs -f db        # PostgreSQL Database
+sudo docker compose logs -f frontend  # React Web App
+```
+
+### 2. Systemd Host Auto-Start Logs
+```bash
+# Inspect systemd boot and auto-restart logs
+journalctl -u studymate.service -n 50 -f
+```
+
+### 3. Database Shell & Querying
+```bash
+# Interactive PostgreSQL CLI inside db container
+sudo docker exec -it postgres_db psql -U postgres -d graphql_db
+
+# One-liner query from terminal:
+sudo docker exec -i postgres_db psql -U postgres -d graphql_db -c "\dt"
+```
+
+---
+
 ## 🤝 Authors & Credits
 
 * **Shreya Upadhyay** ([@Shreya5689](https://github.com/Shreya5689)) — *Lead Developer & Architect*
+
