@@ -182,16 +182,32 @@ sudo docker compose logs -f frontend  # React Web App
 journalctl -u studymate.service -n 50 -f
 ```
 
-### 3. Database Shell & Querying
+### 3. Remote Logging & Debugging via SSH (From Local Mac Terminal)
 ```bash
-# Interactive PostgreSQL CLI inside db container
-sudo docker exec -it postgres_db psql -U postgres -d graphql_db
+# View Backend API logs remotely:
+ssh -i ~/.ssh/oracle_vm.key ubuntu@129.159.227.116 "cd /var/www/StudyMate && sudo docker compose logs --tail=50 backend"
 
-# One-liner query from terminal:
-sudo docker exec -i postgres_db psql -U postgres -d graphql_db -c "\dt"
+# View Nginx Reverse Proxy logs remotely:
+ssh -i ~/.ssh/oracle_vm.key ubuntu@129.159.227.116 "cd /var/www/StudyMate && sudo docker compose logs --tail=50 nginx"
+
+# View Database logs remotely:
+ssh -i ~/.ssh/oracle_vm.key ubuntu@129.159.227.116 "cd /var/www/StudyMate && sudo docker compose logs --tail=50 db"
+
+# View Systemd host boot logs remotely:
+ssh -i ~/.ssh/oracle_vm.key ubuntu@129.159.227.116 "journalctl -u studymate.service -n 30"
+
+# Query remote PostgreSQL database tables remotely:
+ssh -i ~/.ssh/oracle_vm.key ubuntu@129.159.227.116 "sudo docker exec -i postgres_db psql -U postgres -d graphql_db -c '\dt'"
+```
+
+### 4. Interactive Database Shell
+```bash
+# Interactive PostgreSQL CLI inside db container on server
+sudo docker exec -it postgres_db psql -U postgres -d graphql_db
 ```
 
 ---
+
 
 ## 🤝 Authors & Credits
 
