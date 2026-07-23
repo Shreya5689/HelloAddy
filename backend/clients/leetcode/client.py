@@ -85,60 +85,73 @@ class Query:
 
     @strawberry.field
     async def search_all_problems(self, tags: List[str] = None) -> List[Problem]:
-        limit = 100
+        limit = 500
         results: List[Problem] = []
+        pages = []
 
-        async with httpx.AsyncClient(headers=HEADERS, timeout=15) as client:
-
-            # ---- First call (to get totalLength) ----
-            first_resp = await client.post(
-                LEETCODE_URL,
-                json={
-                    "query": LEETCODE_QUERY_ALL_QUESTIONS,
-                    "variables": {"limit": limit, "skip": 0},
-                },
-            )
-
-            first_data = first_resp.json()["data"]["problemsetQuestionListV2"]
-            total = first_data["totalLength"]
-
-            # process first page
-            pages = [first_data["questions"]]
-
-            # ---- Prepare remaining parallel calls ----
-            tasks = []
-            for skip in range(limit, total, limit):
-                tasks.append(
-                    client.post(
-                        LEETCODE_URL,
-                        json={
-                            "query": LEETCODE_QUERY_ALL_QUESTIONS,
-                            "variables": {"limit": limit, "skip": skip},
-                        },
-                    )
+        try:
+            async with httpx.AsyncClient(headers=HEADERS, timeout=15) as client:
+                first_resp = await client.post(
+                    LEETCODE_URL,
+                    json={
+                        "query": LEETCODE_QUERY_ALL_QUESTIONS,
+                        "variables": {"limit": limit, "skip": 0},
+                    },
                 )
 
-            # ---- Execute ALL calls in parallel ----
-            responses = await asyncio.gather(*tasks)
+                if first_resp.status_code == 200:
+                    first_json = first_resp.json()
+                    first_data = (first_json.get("data") or {}).get("problemsetQuestionListV2")
+                    if first_data:
+                        total = first_data.get("totalLength", 0)
+                        pages.append(first_data.get("questions", []))
 
-            for resp in responses:
-                data = resp.json()["data"]["problemsetQuestionListV2"]
-                pages.append(data["questions"])
+                        skips = list(range(limit, min(total, 2500), limit))
+                        for i in range(0, len(skips), 3):
+                            batch_skips = skips[i:i+3]
+                            tasks = [
+                                client.post(
+                                    LEETCODE_URL,
+                                    json={
+                                        "query": LEETCODE_QUERY_ALL_QUESTIONS,
+                                        "variables": {"limit": limit, "skip": s},
+                                    },
+                                )
+                                for s in batch_skips
+                            ]
+                            responses = await asyncio.gather(*tasks, return_exceptions=True)
+                            for resp in responses:
+                                if isinstance(resp, Exception) or resp.status_code != 200:
+                                    continue
+                                try:
+                                    res_json = resp.json()
+                                    q_data = (res_json.get("data") or {}).get("problemsetQuestionListV2")
+                                    if q_data and "questions" in q_data:
+                                        pages.append(q_data["questions"])
+                                except Exception:
+                                    continue
+        except Exception as e:
+            print("Error fetching LeetCode problems:", str(e))
 
-        # ---- Flatten + filter ----
+        seen_slugs = set()
         for questions in pages:
             for q in questions:
-                tag_slugs = [t["slug"] for t in q["topicTags"]]
+                title_slug = q.get("titleSlug")
+                if not title_slug or title_slug in seen_slugs:
+                    continue
+                topic_tags = q.get("topicTags") or []
+                tag_slugs = [t.get("slug") for t in topic_tags if t.get("slug")]
 
-                if tags is None or any(tag in tag_slugs for tag in tags):
+                if tags is None or len(tags) == 0 or any(tag in tag_slugs for tag in tags):
+                    seen_slugs.add(title_slug)
                     results.append(
                         Problem(
-                            title=q["title"],
-                            title_slug=q["titleSlug"],
-                            difficulty=q["difficulty"],
-                            ac_rate=float(q["acRate"] or 0),
+                            title=q.get("title", ""),
+                            title_slug=title_slug,
+                            difficulty=q.get("difficulty", "Medium"),
+                            ac_rate=float(q.get("acRate") or 0),
                             tags=tag_slugs,
-                            paid_only=q["paidOnly"],
+                            paid_only=q.get("paidOnly", False),
                         )
                     )
 

@@ -19,14 +19,14 @@ router=APIRouter()
 
 
 def get_difficulty_value(p, platform):
-
     if platform == "leetcode":
-        d = p.difficulty.lower()
+        diff = getattr(p, "difficulty", None) or "medium"
+        d = diff.lower()
         if d == 'easy': return 1
         if d == 'medium': return 2
         if d == 'hard': return 3
     else:  # codeforces
-        return p.get("rating", 9999)
+        return p.get("rating", 9999) if isinstance(p, dict) and p.get("rating") else 9999
     return 99
     
 async def get_balanced_problems(lc_tags, cf_tags, user_ranking):

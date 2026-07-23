@@ -38,9 +38,16 @@ from fastapi import Request
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    origin = request.headers.get("origin", "http://localhost:5173")
     return JSONResponse(
         status_code=500,
         content={"detail": str(exc)},
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
     )
 
 @app.get("/")

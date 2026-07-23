@@ -13,7 +13,9 @@ class SaveSheetRequest(BaseModel):
     name: str
     problems: List[ProblemItem]
 
+from typing import List, Optional
+
 class CheckboxRequest(BaseModel):
-    codeforces_tags: List[str]
-    leetcode_tags: List[str]
+    codeforces_tags: Optional[List[str]] = []
+    leetcode_tags: Optional[List[str]] = []
 
