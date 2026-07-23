@@ -15,7 +15,10 @@ export default function App() {
       try {
         await authApi.me();
       } catch {
-        if (isMounted) setIsAuthenticated(false);
+        if (isMounted) {
+          localStorage.removeItem("access_token");
+          setIsAuthenticated(false);
+        }
       }
     };
 

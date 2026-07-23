@@ -18,8 +18,11 @@ app.add_middleware(
         "http://localhost:5173",
         "http://localhost:3000",
         "http://localhost",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1",
     ],
-    allow_origin_regex=r"https://.*\.shreya-projects\.site",
+    allow_origin_regex=r"https://.*\.shreya-projects\.site|http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,6 +32,16 @@ app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(problems.router, prefix="/problems", tags=["problems"])
 app.include_router(wishlist.router, prefix="/wishlist", tags=["wishlist"])
 app.include_router(workspace.router, prefix="/workspace", tags=["workspace"])
+
+from fastapi.responses import JSONResponse
+from fastapi import Request
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)},
+    )
 
 @app.get("/")
 def main():

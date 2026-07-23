@@ -14,7 +14,7 @@ ALGORITHM="HS256"
 ACCESS_TOKEN_EXPIRES_MINUTES=30
 REFRESH_TOKEN_EXPIRES_DAYS=7
 
-oauth2_scheme = HTTPBearer()
+oauth2_scheme = HTTPBearer(auto_error=False)
 
 def hash_password(password:str)->str:
     password_bytes= password.encode("utf-8")
@@ -47,6 +47,11 @@ def verify_token(token: str):
         return None
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)):
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
     token = credentials.credentials  # Extract token from "Bearer <token>"
     payload = verify_token(token)  # your function that checks token validity
     if not payload or payload.get("type") != "access":

@@ -145,11 +145,17 @@ async def checkbox_problem(
     user_payload: dict = Depends(auth.get_current_user),
     db: Session = Depends(get_db)
 ):
-    user_ranking=db.query(UserProfile).filter(UserProfile.username==user_payload["sub"]).first().ranking
-    # Get related tags from Gemini
-    tags = get_tags(tags)
-    lc_tags = tags.get("leetcode_tags", [])
-    cf_tags = tags.get("codeforces_tags", [])
+    profile = db.query(UserProfile).filter(UserProfile.username == user_payload["sub"]).first()
+    user_ranking = profile.ranking if (profile and profile.ranking) else "beginner"
+    
+    lc_tags = tags.leetcode_tags if (tags.leetcode_tags and len(tags.leetcode_tags) > 0) else []
+    cf_tags = tags.codeforces_tags if (tags.codeforces_tags and len(tags.codeforces_tags) > 0) else []
+    
+    if not lc_tags and not cf_tags:
+        gemini_tags = get_tags("general")
+        lc_tags = gemini_tags.get("leetcode_tags", [])
+        cf_tags = gemini_tags.get("codeforces_tags", [])
+
     lc_final, cf_final = await get_balanced_problems(lc_tags, cf_tags, user_ranking)
     return {
         "problems": lc_final,
@@ -182,7 +188,8 @@ async def problem(
     user_payload: dict = Depends(auth.get_current_user),
     db: Session = Depends(get_db)
 ):
-    user_ranking=db.query(UserProfile).filter(UserProfile.username==user_payload["sub"]).first().ranking
+    profile = db.query(UserProfile).filter(UserProfile.username == user_payload["sub"]).first()
+    user_ranking = profile.ranking if (profile and profile.ranking) else "beginner"
     # Get related tags from Gemini
     tags = get_tags(topic)
     lc_tags = tags.get("leetcode_tags", [])

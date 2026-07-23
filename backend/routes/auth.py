@@ -25,7 +25,7 @@ from utils.auth import generate_otp
 
 router = APIRouter()
 @router.post("/login", status_code=status.HTTP_201_CREATED)
-async def login(response: Response, db: Annotated[Session, Depends(get_db)], create_user_request: CreateUserRequest):
+async def login(request: Request, response: Response, db: Annotated[Session, Depends(get_db)], create_user_request: CreateUserRequest):
     # 1. Fetch user by username
     user = get_user(db, create_user_request.username)
     if not user:
@@ -47,12 +47,14 @@ async def login(response: Response, db: Annotated[Session, Depends(get_db)], cre
     refresh_token = auth.create_token(
         data={"sub": create_user_request.username, "type": "refresh"}, expires_delta=refresh_token_expires)
     
+    is_secure = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+    
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,          
-        samesite="none",
+        secure=is_secure,          
+        samesite="none" if is_secure else "lax",
         max_age=7 * 24 * 60 * 60,
         path="/"        
     )
@@ -61,7 +63,7 @@ async def login(response: Response, db: Annotated[Session, Depends(get_db)], cre
         "access_token": access_token
     }
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
-async def create_user(response: Response, db: Annotated[Session, Depends(get_db)], create_user_request: CreateUserSignupRequest):
+async def create_user(request: Request, response: Response, db: Annotated[Session, Depends(get_db)], create_user_request: CreateUserSignupRequest):
     # 1. Check if username already exists
     user = get_user(db, create_user_request.username)
     if user:
@@ -96,12 +98,14 @@ async def create_user(response: Response, db: Annotated[Session, Depends(get_db)
     refresh_token = auth.create_token(
         data={"sub": create_user_request.username, "type": "refresh"}, expires_delta=refresh_token_expires)
     
+    is_secure = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+    
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,          
-        samesite="none",
+        secure=is_secure,          
+        samesite="none" if is_secure else "lax",
         max_age=7 * 24 * 60 * 60,
         path="/"        
     )
@@ -208,13 +212,14 @@ async def reset_password(req: ResetPasswordRequest, db: Annotated[Session, Depen
 
 
 @router.post("/logout")
-def logout(response: Response):
+def logout(request: Request, response: Response):
+    is_secure = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
     response.delete_cookie(
         key="refresh_token",
         path="/",
-        httponly=True
-        # secure=True,      # keep same flags you used when setting it
-        # samesite="lax"    # must match original cookie
+        httponly=True,
+        secure=is_secure,
+        samesite="none" if is_secure else "lax"
     )
     return {"message": "Logged out successfully"}
 
